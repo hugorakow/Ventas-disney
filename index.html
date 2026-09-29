@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mis ventas · Agente Disney & Universal</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎟️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1D2B4F; --ink-soft:#56607A; --sky:#E9EEF6; --paper:#FFFFFF; --line:#D5DCE8;
+  --disney:#2F5BD3; --universal:#D99413; --ok:#2E7D57; --warn:#B7791F; --bad:#B63B36; --muted:#8A93A8;
+  --radius-lg:18px; --radius-sm:8px;
+  font-family:"Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color:var(--ink); box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--sky);min-height:100vh}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--disney);outline-offset:2px}
+.wrap{max-width:1080px;margin:0 auto;padding:28px 20px 60px}
+
+/* Encabezado */
+header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:26px}
+h1{font-size:clamp(2rem,5vw,3.1rem);font-weight:800;letter-spacing:-.02em;line-height:1;margin:0}
+.sub{color:var(--ink-soft);margin:8px 0 0}
+.btn{border:0;border-radius:999px;padding:11px 20px;font-weight:700;cursor:pointer;background:var(--ink);color:#fff}
+.btn:hover{background:#2A3C6B}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn.ghost:hover{border-color:var(--ink)}
+.btn.danger{background:transparent;color:var(--bad);border:1.5px solid #E8C4C2}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+
+/* Resumen */
+.summary{display:grid;grid-template-columns:repeat(4,1fr);background:var(--paper);border-radius:var(--radius-lg);margin-bottom:22px;overflow:hidden}
+.summary div{padding:18px 20px;border-right:1px dashed var(--line)}
+.summary div:last-child{border-right:0}
+.summary span{display:block;color:var(--ink-soft);font-size:.9rem}
+.summary strong{font-size:clamp(1.1rem,4.2vw,1.55rem);white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:700}
+.summary .hl strong{color:var(--disney)}
+@media (max-width:720px){.summary{grid-template-columns:1fr 1fr}.summary div:nth-child(2){border-right:0}.summary div:nth-child(-n+2){border-bottom:1px dashed var(--line)}}
+
+/* Filtros */
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.filters input,.filters select{background:var(--paper);border:1.5px solid var(--line);border-radius:999px;padding:9px 14px}
+.filters input{flex:1 1 220px}
+.filters select{flex:1 1 150px}
+
+/* Ticket */
+.list{display:flex;flex-direction:column;gap:12px}
+.ticket{display:grid;grid-template-columns:96px 1fr 190px;background:var(--paper);border-radius:var(--radius-lg);cursor:pointer;position:relative;text-align:left;border:0;padding:0;width:100%;transition:transform .12s}
+.ticket:hover{transform:translateY(-1px)}
+.ticket > *{padding:16px 18px}
+.stub{border-right:2px dashed var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative}
+.stub::before,.stub::after,.price::before,.price::after{content:"";position:absolute;width:18px;height:18px;border-radius:50%;background:var(--sky);right:-10px}
+.stub::before,.price::before{top:-9px}.stub::after,.price::after{bottom:-9px}
+.price::before,.price::after{left:-10px;right:auto}
+.stub .day{font-size:2rem;font-weight:800;line-height:1}
+.stub .mon{font-size:.85rem;color:var(--ink-soft);text-transform:capitalize}
+.stub .yr{font-size:.75rem;color:var(--muted)}
+.body h3{margin:0 0 4px;font-size:1.15rem}
+.meta{color:var(--ink-soft);font-size:.92rem;line-height:1.5}
+.dest{display:inline-block;font-size:.78rem;font-weight:700;padding:2px 9px;border-radius:999px;margin-right:6px;color:#fff}
+.dest.d{background:var(--disney)}.dest.u{background:var(--universal)}.dest.du{background:linear-gradient(90deg,var(--disney) 50%,var(--universal) 50%)}
+.price{border-left:2px dashed var(--line);position:relative;display:flex;flex-direction:column;justify-content:center;gap:3px}
+.price .amt{font-size:1.3rem;font-weight:700;font-variant-numeric:tabular-nums}
+.price .com{font-size:.88rem;color:var(--ok);font-variant-numeric:tabular-nums}
+.chip{align-self:flex-start;font-size:.78rem;font-weight:700;padding:2px 9px;border-radius:999px;margin-top:4px}
+.chip.Presupuesto{background:#EEF0F5;color:var(--ink-soft)}
+.chip.Seña{background:#FBF0DC;color:var(--warn)}
+.chip.Pagado{background:#DDF1E6;color:var(--ok)}
+.chip.Cancelado{background:#F6DEDC;color:var(--bad)}
+.ticket.cancel{opacity:.6}
+@media (max-width:640px){
+  .ticket{grid-template-columns:74px 1fr}
+  .price{grid-column:1 / -1;border-left:0;border-top:2px dashed var(--line);flex-direction:row;flex-wrap:wrap;align-items:center;gap:10px}
+  .price::before,.price::after{display:none}
+  .chip{margin-top:0}
+}
+.empty{background:var(--paper);border-radius:var(--radius-lg);padding:40px 20px;text-align:center;color:var(--ink-soft)}
+.banner{background:#FBF0DC;color:#6B4A10;border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:18px;font-size:.92rem}
+.banner.err{background:#F6DEDC;color:#7A231F}
+
+/* Formulario */
+dialog{border:0;border-radius:var(--radius-lg);padding:0;width:min(720px,94vw);max-height:92vh;color:var(--ink)}
+dialog::backdrop{background:rgba(29,43,79,.45)}
+.dlg-head{padding:20px 24px 6px;display:flex;justify-content:space-between;align-items:center}
+.dlg-head h2{margin:0;font-size:1.5rem}
+.x{background:none;border:0;font-size:1.6rem;cursor:pointer;color:var(--ink-soft);line-height:1}
+form{padding:6px 24px 22px}
+fieldset{border:0;padding:0;margin:0 0 18px}
+legend{font-weight:700;margin-bottom:8px;font-size:1.02rem}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.grid .full{grid-column:1 / -1}
+@media (max-width:560px){.grid{grid-template-columns:1fr}}
+label{display:flex;flex-direction:column;gap:4px;font-size:.88rem;color:var(--ink-soft)}
+label input,label select,label textarea{border:1.5px solid var(--line);border-radius:var(--radius-sm);padding:9px 11px;background:#fff;color:var(--ink);font-size:1rem}
+label textarea{min-height:70px;resize:vertical}
+.calc{background:var(--sky);border-radius:var(--radius-sm);padding:10px 12px;font-size:.92rem;font-variant-numeric:tabular-nums}
+.form-actions{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:16px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.show{opacity:1}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Mis ventas</h1>
+      <p class="sub">Viajes vendidos a Disney y Universal Orlando</p>
+    </div>
+    <div class="actions">
+      <button class="btn ghost" id="btnCsv" type="button">Exportar CSV</button>
+      <button class="btn" id="btnNew" type="button">Nueva venta</button>
+    </div>
+  </header>
+
+  <div id="banner"></div>
+
+  <section class="summary" aria-label="Resumen">
+    <div class="hl"><span>Total vendido</span><strong id="sTotal">US$ 0</strong></div>
+    <div><span>Mis comisiones</span><strong id="sCom">US$ 0</strong></div>
+    <div><span>Cobrado</span><strong id="sCob">US$ 0</strong></div>
+    <div><span>Saldo por cobrar</span><strong id="sSaldo">US$ 0</strong></div>
+  </section>
+
+  <div class="filters">
+    <input id="fText" type="search" placeholder="Buscar cliente, hotel, parques…" aria-label="Buscar">
+    <select id="fDest" aria-label="Destino"><option value="">Todos los destinos</option><option>Disney</option><option>Universal</option><option>Disney + Universal</option></select>
+    <select id="fEstado" aria-label="Estado"><option value="">Todos los estados</option><option>Presupuesto</option><option>Seña</option><option>Pagado</option><option>Cancelado</option></select>
+    <select id="fAnio" aria-label="Año de venta"><option value="">Todos los años</option></select>
+  </div>
+
+  <div class="list" id="list"></div>
+</div>
+
+<dialog id="dlg">
+  <div class="dlg-head"><h2 id="dlgTitle">Nueva venta</h2><button class="x" type="button" id="btnClose" aria-label="Cerrar">×</button></div>
+  <form id="form" method="dialog" novalidate>
+    <fieldset>
+      <legend>Cliente</legend>
+      <div class="grid">
+        <label class="full">Nombre y apellido<input name="cliente" required></label>
+        <label>Email<input name="email" type="email"></label>
+        <label>Teléfono / WhatsApp<input name="telefono" type="tel"></label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Viaje</legend>
+      <div class="grid">
+        <label>Destino<select name="destino"><option>Disney</option><option>Universal</option><option>Disney + Universal</option></select></label>
+        <label>Fecha de venta<input name="fechaVenta" type="date" required></label>
+        <label>Llegada<input name="fechaDesde" type="date"></label>
+        <label>Salida<input name="fechaHasta" type="date"></label>
+        <label>Adultos<input name="adultos" type="number" min="0" value="2"></label>
+        <label>Niños<input name="ninos" type="number" min="0" value="0"></label>
+        <label class="full">Parques<input name="parques" placeholder="Ej.: Magic Kingdom, EPCOT, Islands of Adventure"></label>
+        <label>Tickets<input name="tickets" placeholder="Ej.: 4 días Park Hopper"></label>
+        <label>Hotel<input name="hotel" placeholder="Ej.: Pop Century"></label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Montos (US$)</legend>
+      <div class="grid">
+        <label>Monto total<input name="montoTotal" type="number" min="0" step="0.01" inputmode="decimal"></label>
+        <label>Comisión %<input name="comisionPct" type="number" min="0" step="0.01" inputmode="decimal"></label>
+        <label>Comisión US$<input name="comision" type="number" min="0" step="0.01" inputmode="decimal"></label>
+        <label>Cobrado al cliente<input name="montoCobrado" type="number" min="0" step="0.01" inputmode="decimal"></label>
+        <label>Estado de pago<select name="estado"><option>Presupuesto</option><option>Seña</option><option>Pagado</option><option>Cancelado</option></select></label>
+        <label>Vence el saldo<input name="vencimiento" type="date"></label>
+        <div class="calc full" id="calc">Saldo: US$ 0</div>
+        <label class="full">Notas<textarea name="notas"></textarea></label>
+      </div>
+    </fieldset>
+    <div class="form-actions">
+      <button class="btn danger" type="button" id="btnDelete" hidden>Eliminar venta</button>
+      <span></span>
+      <div class="actions">
+        <button class="btn ghost" type="button" id="btnCancel">Cancelar</button>
+        <button class="btn" type="submit" id="btnSave">Guardar venta</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script type="module">
+// ================== CONFIGURACIÓN FIREBASE ==================
+// Pegá acá la config de tu proyecto (Consola Firebase → Configuración del proyecto → Tus apps → Web).
+const firebaseConfig = {
+  apiKey: "AIzaSyBh9RTw6CuVV9Qx8u1Wn_mGd4uo5HyQyOw",
+  authDomain: "agente-disney.firebaseapp.com",
+  projectId: "agente-disney",
+  storageBucket: "agente-disney.firebasestorage.app",
+  messagingSenderId: "580018231246",
+  appId: "1:580018231246:web:057a915b2d088aca067d9f"
+};
+const COLECCION = "ventas_disney";
+// =============================================================
+
+const $ = s => document.querySelector(s);
+const fmt = n => "US$ " + (Number(n)||0).toLocaleString("es-AR",{minimumFractionDigits:0,maximumFractionDigits:2});
+const num = v => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const MESES = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+
+let ventas = [];
+let editId = null;
+let store; // capa de datos: Firebase o modo prueba
+
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("show"),2200); }
+function banner(msg, err=false){ $("#banner").innerHTML = msg ? `<div class="banner ${err?"err":""}">${msg}</div>` : ""; }
+
+// ---------- Capa de datos ----------
+const configurado = !firebaseConfig.apiKey.startsWith("PEGAR");
+
+async function initFirebase(){
+  const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+  const fs = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+  const app = initializeApp(firebaseConfig);
+  const db = fs.getFirestore(app);
+  const col = fs.collection(db, COLECCION);
+  return {
+    subscribe(cb){
+      fs.onSnapshot(fs.query(col, fs.orderBy("fechaVenta","desc")),
+        snap => cb(snap.docs.map(d => ({ id:d.id, ...d.data() }))),
+        e => banner("No se pudieron leer las ventas de Firebase: " + esc(e.message) + ". Revisá las reglas de Firestore.", true));
+    },
+    add: data => fs.addDoc(col, { ...data, creado: fs.serverTimestamp() }),
+    update: (id, data) => fs.updateDoc(fs.doc(db, COLECCION, id), { ...data, modificado: fs.serverTimestamp() }),
+    remove: id => fs.deleteDoc(fs.doc(db, COLECCION, id))
+  };
+}
+
+function initLocal(){
+  const KEY = "ventas_disney_prueba";
+  let listeners = [];
+  const read = () => { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch { return []; } };
+  const write = arr => { try { localStorage.setItem(KEY, JSON.stringify(arr)); } catch {} listeners.forEach(cb => cb(sorted())); };
+  const sorted = () => read().sort((a,b) => (b.fechaVenta||"").localeCompare(a.fechaVenta||""));
+  return {
+    subscribe(cb){ listeners.push(cb); cb(sorted()); },
+    async add(data){ const arr = read(); arr.push({ ...data, id: crypto.randomUUID() }); write(arr); },
+    async update(id, data){ write(read().map(v => v.id === id ? { ...v, ...data } : v)); },
+    async remove(id){ write(read().filter(v => v.id !== id)); }
+  };
+}
+
+// ---------- Render ----------
+function filtradas(){
+  const t = $("#fText").value.trim().toLowerCase();
+  const d = $("#fDest").value, e = $("#fEstado").value, a = $("#fAnio").value;
+  return ventas.filter(v =>
+    (!d || v.destino === d) &&
+    (!e || v.estado === e) &&
+    (!a || (v.fechaVenta||"").startsWith(a)) &&
+    (!t || [v.cliente,v.email,v.telefono,v.hotel,v.parques,v.tickets,v.notas].join(" ").toLowerCase().includes(t))
+  );
+}
+
+function render(){
+  // años disponibles
+  const anios = [...new Set(ventas.map(v => (v.fechaVenta||"").slice(0,4)).filter(Boolean))].sort().reverse();
+  const selA = $("#fAnio"), cur = selA.value;
+  selA.innerHTML = `<option value="">Todos los años</option>` + anios.map(y => `<option ${y===cur?"selected":""}>${y}</option>`).join("");
+
+  const lista = filtradas();
+  const activas = lista.filter(v => v.estado !== "Cancelado" && v.estado !== "Presupuesto");
+  const total = activas.reduce((s,v) => s + num(v.montoTotal), 0);
+  const com = activas.reduce((s,v) => s + num(v.comision), 0);
+  const cob = activas.reduce((s,v) => s + num(v.montoCobrado), 0);
+  $("#sTotal").textContent = fmt(total);
+  $("#sCom").textContent = fmt(com);
+  $("#sCob").textContent = fmt(cob);
+  $("#sSaldo").textContent = fmt(Math.max(total - cob, 0));
+
+  if (!lista.length){
+    $("#list").innerHTML = `<div class="empty">${ventas.length ? "Ninguna venta coincide con los filtros." : "Todavía no cargaste ventas. Tocá “Nueva venta” para registrar la primera."}</div>`;
+    return;
+  }
+  $("#list").innerHTML = lista.map(v => {
+    const f = v.fechaDesde || v.fechaVenta || "";
+    const [y,m,dd] = f.split("-");
+    const cls = v.destino === "Universal" ? "u" : v.destino === "Disney + Universal" ? "du" : "d";
+    const pax = [num(v.adultos) && `${num(v.adultos)} adulto${num(v.adultos)!==1?"s":""}`, num(v.ninos) && `${num(v.ninos)} niño${num(v.ninos)!==1?"s":""}`].filter(Boolean).join(", ");
+    const rango = v.fechaDesde ? `${fechaCorta(v.fechaDesde)}${v.fechaHasta ? " al " + fechaCorta(v.fechaHasta) : ""}` : "Sin fechas de viaje";
+    const saldo = num(v.montoTotal) - num(v.montoCobrado);
+    return `<button class="ticket ${v.estado==="Cancelado"?"cancel":""}" data-id="${esc(v.id)}" type="button">
+      <div class="stub">${f ? `<span class="day">${+dd}</span><span class="mon">${MESES[+m-1]}</span><span class="yr">${y}</span>` : `<span class="mon">—</span>`}</div>
+      <div class="body">
+        <h3>${esc(v.cliente)}</h3>
+        <div class="meta"><span class="dest ${cls}">${esc(v.destino)}</span>${esc(rango)}${pax ? " — " + esc(pax) : ""}</div>
+        <div class="meta">${[v.parques, v.tickets, v.hotel].filter(Boolean).map(esc).join(" / ") || "Sin detalle de parques ni hotel"}</div>
+      </div>
+      <div class="price">
+        <span class="amt">${fmt(v.montoTotal)}</span>
+        <span class="com">Comisión ${fmt(v.comision)}</span>
+        <span class="chip ${esc(v.estado)}">${esc(v.estado)}${saldo > 0 && v.estado !== "Cancelado" && v.estado !== "Presupuesto" ? " · debe " + fmt(saldo) : ""}</span>
+      </div>
+    </button>`;
+  }).join("");
+}
+function fechaCorta(s){ const [y,m,d] = s.split("-"); return `${+d} ${MESES[+m-1]} ${y}`; }
+
+// ---------- Formulario ----------
+const form = $("#form"), dlg = $("#dlg");
+const hoy = () => new Date().toLocaleDateString("sv-SE");
+
+function abrir(v){
+  editId = v?.id || null;
+  form.reset();
+  $("#dlgTitle").textContent = v ? "Editar venta" : "Nueva venta";
+  $("#btnDelete").hidden = !v;
+  $("#btnSave").textContent = v ? "Guardar cambios" : "Guardar venta";
+  if (v) for (const [k,val] of Object.entries(v)) { const el = form.elements[k]; if (el && typeof val !== "object") el.value = val; }
+  else form.elements.fechaVenta.value = hoy();
+  actualizarCalc();
+  dlg.showModal();
+}
+
+function actualizarCalc(){
+  const t = num(form.montoTotal.value), c = num(form.montoCobrado.value);
+  $("#calc").textContent = `Saldo del cliente: ${fmt(Math.max(t - c, 0))}${t && c > t ? " (cobrado mayor al total)" : ""}`;
+}
+// Comisión: % y monto se mantienen sincronizados
+form.comisionPct.addEventListener("input", () => { const t = num(form.montoTotal.value); if (form.comisionPct.value !== "") form.comision.value = +(t * num(form.comisionPct.value) / 100).toFixed(2); });
+form.comision.addEventListener("input", () => { const t = num(form.montoTotal.value); if (t) form.comisionPct.value = +(num(form.comision.value) / t * 100).toFixed(2); });
+form.montoTotal.addEventListener("input", () => { if (form.comisionPct.value !== "") form.comision.value = +(num(form.montoTotal.value) * num(form.comisionPct.value) / 100).toFixed(2); actualizarCalc(); });
+form.montoCobrado.addEventListener("input", actualizarCalc);
+
+form.addEventListener("submit", async e => {
+  e.preventDefault();
+  if (!form.cliente.value.trim()) { form.cliente.focus(); toast("Falta el nombre del cliente"); return; }
+  if (!form.fechaVenta.value) { form.fechaVenta.focus(); toast("Falta la fecha de venta"); return; }
+  if (form.fechaDesde.value && form.fechaHasta.value && form.fechaHasta.value < form.fechaDesde.value) { form.fechaHasta.focus(); toast("La salida es anterior a la llegada"); return; }
+  const f = Object.fromEntries(new FormData(form));
+  const data = {
+    cliente: f.cliente.trim(), email: f.email.trim(), telefono: f.telefono.trim(),
+    destino: f.destino, fechaVenta: f.fechaVenta, fechaDesde: f.fechaDesde, fechaHasta: f.fechaHasta,
+    adultos: num(f.adultos), ninos: num(f.ninos),
+    parques: f.parques.trim(), tickets: f.tickets.trim(), hotel: f.hotel.trim(),
+    montoTotal: num(f.montoTotal), comisionPct: num(f.comisionPct), comision: num(f.comision),
+    montoCobrado: num(f.montoCobrado), estado: f.estado, vencimiento: f.vencimiento, notas: f.notas.trim()
+  };
+  $("#btnSave").disabled = true;
+  try {
+    if (editId) { await store.update(editId, data); toast("Cambios guardados"); }
+    else { await store.add(data); toast("Venta guardada"); }
+    dlg.close();
+  } catch (err) { toast("No se pudo guardar: " + err.message); }
+  finally { $("#btnSave").disabled = false; }
+});
+
+$("#btnDelete").addEventListener("click", async () => {
+  if (!editId || !confirm("¿Eliminar esta venta? No se puede deshacer.")) return;
+  try { await store.remove(editId); dlg.close(); toast("Venta eliminada"); }
+  catch (err) { toast("No se pudo eliminar: " + err.message); }
+});
+$("#btnNew").addEventListener("click", () => abrir());
+$("#btnClose").addEventListener("click", () => dlg.close());
+$("#btnCancel").addEventListener("click", () => dlg.close());
+$("#list").addEventListener("click", e => { const b = e.target.closest(".ticket"); if (b) abrir(ventas.find(v => v.id === b.dataset.id)); });
+["#fText","#fDest","#fEstado","#fAnio"].forEach(s => $(s).addEventListener("input", render));
+
+// ---------- Exportar CSV ----------
+$("#btnCsv").addEventListener("click", () => {
+  const cols = ["fechaVenta","cliente","email","telefono","destino","fechaDesde","fechaHasta","adultos","ninos","parques","tickets","hotel","montoTotal","comisionPct","comision","montoCobrado","estado","vencimiento","notas"];
+  const q = v => `"${String(v ?? "").replace(/"/g,'""')}"`;
+  const csv = "\ufeff" + [cols.join(";"), ...filtradas().map(v => cols.map(c => q(v[c])).join(";"))].join("\n");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([csv], { type:"text/csv;charset=utf-8" }));
+  a.download = `ventas-disney-${hoy()}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+// ---------- Arranque ----------
+(async () => {
+  try {
+    if (configurado) store = await initFirebase();
+    else { store = initLocal(); banner("Modo prueba: los datos se guardan solo en este navegador. Pegá la configuración de Firebase en el código para compartirlos entre dispositivos."); }
+  } catch (err) {
+    store = initLocal();
+    banner("No se pudo conectar con Firebase (" + esc(err.message) + "). Estás en modo prueba local.", true);
+  }
+  store.subscribe(arr => { ventas = arr; render(); });
+})();
+</script>
+</body>
+</html>
