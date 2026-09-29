@@ -3,178 +3,249 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Mis ventas · Agente Disney & Universal</title>
+<meta name="theme-color" content="#2A1A5E">
+<title>Mis ventas · Agente de viajes</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎟️</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700;12..96,800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --ink:#1D2B4F; --ink-soft:#56607A; --sky:#E9EEF6; --paper:#FFFFFF; --line:#D5DCE8;
-  --disney:#2F5BD3; --universal:#D99413; --ok:#2E7D57; --warn:#B7791F; --bad:#B63B36; --muted:#8A93A8;
-  --radius-lg:18px; --radius-sm:8px;
-  font-family:"Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --ink:#221A45; --ink-soft:#5E5878; --muted:#9892AE; --bg:#F4F2FA; --paper:#FFFFFF; --line:#E3DFEF;
+  --accent:#5B2C8F; --ok:#2B8A57; --warn:#C27A0E; --bad:#C23A3A;
+  --r-lg:22px; --r-md:14px; --r-sm:10px;
+  --shadow:0 1px 2px rgba(34,26,69,.06),0 8px 24px -12px rgba(34,26,69,.18);
+  font-family:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif;
   color:var(--ink); box-sizing:border-box;
-  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
 }
 *,*::before,*::after{box-sizing:inherit}
-body{margin:0;background:var(--sky);min-height:100vh}
+body{margin:0;background:var(--bg);min-height:100vh}
 button,input,select,textarea{font:inherit;color:inherit}
-:focus-visible{outline:3px solid var(--disney);outline-offset:2px}
-.wrap{max-width:1080px;margin:0 auto;padding:28px 20px 60px}
+:focus-visible{outline:3px solid #8C5CD6;outline-offset:2px}
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px}
 
-/* Encabezado */
-header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:26px}
-h1{font-size:clamp(2rem,5vw,3.1rem);font-weight:800;letter-spacing:-.02em;line-height:1;margin:0}
-.sub{color:var(--ink-soft);margin:8px 0 0}
-.btn{border:0;border-radius:999px;padding:11px 20px;font-weight:700;cursor:pointer;background:var(--ink);color:#fff}
-.btn:hover{background:#2A3C6B}
+/* ---------- Encabezado atardecer ---------- */
+.hero{
+  color:#fff;padding:calc(28px + env(safe-area-inset-top,0px)) 0 34px;
+  background:
+    radial-gradient(1.5px 1.5px at 12% 22%,rgba(255,255,255,.8) 50%,transparent 51%),
+    radial-gradient(1px 1px at 27% 12%,rgba(255,255,255,.7) 50%,transparent 51%),
+    radial-gradient(1.5px 1.5px at 44% 30%,rgba(255,255,255,.6) 50%,transparent 51%),
+    radial-gradient(1px 1px at 63% 16%,rgba(255,255,255,.8) 50%,transparent 51%),
+    radial-gradient(1.5px 1.5px at 81% 26%,rgba(255,255,255,.7) 50%,transparent 51%),
+    radial-gradient(1px 1px at 92% 10%,rgba(255,255,255,.6) 50%,transparent 51%),
+    radial-gradient(120% 90% at 85% 120%,#F2845C 0%,rgba(242,132,92,0) 55%),
+    linear-gradient(165deg,#1E1450 0%,#3E2178 45%,#7A3A94 80%,#B45585 100%);
+  border-radius:0 0 34px 34px;
+}
+.hero-top{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;flex-wrap:wrap}
+h1{font-size:clamp(2.2rem,6vw,3.4rem);font-weight:800;letter-spacing:-.025em;line-height:.95;margin:0}
+.hero p.sub{margin:10px 0 0;color:rgba(255,255,255,.75);font-size:1.02rem}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.btn{border:0;border-radius:999px;padding:11px 20px;font-weight:700;cursor:pointer;background:var(--ink);color:#fff;transition:background .15s,transform .15s}
+.btn:hover{background:#3A2E6B}
+.btn.light{background:#fff;color:var(--ink)}
+.btn.light:hover{background:#F1ECFF}
+.btn.glass{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.28)}
+.btn.glass:hover{background:rgba(255,255,255,.2)}
 .btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
 .btn.ghost:hover{border-color:var(--ink)}
-.btn.danger{background:transparent;color:var(--bad);border:1.5px solid #E8C4C2}
-.actions{display:flex;gap:10px;flex-wrap:wrap}
+.btn.danger{background:transparent;color:var(--bad);border:1.5px solid #EFC9C9}
+.btn.danger:hover{background:#FCEFEF}
+.btn:disabled{opacity:.6;cursor:wait}
 
-/* Resumen */
-.summary{display:grid;grid-template-columns:repeat(4,1fr);background:var(--paper);border-radius:var(--radius-lg);margin-bottom:22px;overflow:hidden}
-.summary div{padding:18px 20px;border-right:1px dashed var(--line)}
-.summary div:last-child{border-right:0}
-.summary span{display:block;color:var(--ink-soft);font-size:.9rem}
-.summary strong{font-size:clamp(1.1rem,4.2vw,1.55rem);white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:700}
-.summary .hl strong{color:var(--disney)}
-@media (max-width:720px){.summary{grid-template-columns:1fr 1fr}.summary div:nth-child(2){border-right:0}.summary div:nth-child(-n+2){border-bottom:1px dashed var(--line)}}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:26px}
+.stat{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:var(--r-md);padding:14px 16px;backdrop-filter:blur(6px)}
+.stat span{display:block;font-size:.85rem;color:rgba(255,255,255,.72)}
+.stat strong{display:block;margin-top:4px;font-size:clamp(1.1rem,2.6vw,1.5rem);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.stat.mine{background:#fff;color:var(--ink);border-color:#fff}
+.stat.mine span{color:var(--accent)}
+@media (max-width:860px){.stats{grid-template-columns:repeat(2,1fr)}.stat.mine{grid-column:1 / -1}}
 
-/* Filtros */
-.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
-.filters input,.filters select{background:var(--paper);border:1.5px solid var(--line);border-radius:999px;padding:9px 14px}
-.filters input{flex:1 1 220px}
-.filters select{flex:1 1 150px}
+.mix{margin-top:18px}
+.mix-bar{display:flex;height:10px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.15)}
+.mix-bar i{display:block;height:100%}
+.mix-legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:10px;font-size:.88rem;color:rgba(255,255,255,.85)}
+.mix-legend b{font-weight:600;color:#fff;font-variant-numeric:tabular-nums}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:1px}
 
-/* Ticket */
-.list{display:flex;flex-direction:column;gap:12px}
-.ticket{display:grid;grid-template-columns:96px 1fr 190px;background:var(--paper);border-radius:var(--radius-lg);cursor:pointer;position:relative;text-align:left;border:0;padding:0;width:100%;transition:transform .12s}
-.ticket:hover{transform:translateY(-1px)}
-.ticket > *{padding:16px 18px}
-.stub{border-right:2px dashed var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative}
-.stub::before,.stub::after,.price::before,.price::after{content:"";position:absolute;width:18px;height:18px;border-radius:50%;background:var(--sky);right:-10px}
-.stub::before,.price::before{top:-9px}.stub::after,.price::after{bottom:-9px}
-.price::before,.price::after{left:-10px;right:auto}
-.stub .day{font-size:2rem;font-weight:800;line-height:1}
-.stub .mon{font-size:.85rem;color:var(--ink-soft);text-transform:capitalize}
-.stub .yr{font-size:.75rem;color:var(--muted)}
-.body h3{margin:0 0 4px;font-size:1.15rem}
-.meta{color:var(--ink-soft);font-size:.92rem;line-height:1.5}
-.dest{display:inline-block;font-size:.78rem;font-weight:700;padding:2px 9px;border-radius:999px;margin-right:6px;color:#fff}
-.dest.d{background:var(--disney)}.dest.u{background:var(--universal)}.dest.du{background:linear-gradient(90deg,var(--disney) 50%,var(--universal) 50%)}
-.price{border-left:2px dashed var(--line);position:relative;display:flex;flex-direction:column;justify-content:center;gap:3px}
-.price .amt{font-size:1.3rem;font-weight:700;font-variant-numeric:tabular-nums}
-.price .com{font-size:.88rem;color:var(--ok);font-variant-numeric:tabular-nums}
-.chip{align-self:flex-start;font-size:.78rem;font-weight:700;padding:2px 9px;border-radius:999px;margin-top:4px}
-.chip.Presupuesto{background:#EEF0F5;color:var(--ink-soft)}
-.chip.Seña{background:#FBF0DC;color:var(--warn)}
-.chip.Pagado{background:#DDF1E6;color:var(--ok)}
-.chip.Cancelado{background:#F6DEDC;color:var(--bad)}
-.ticket.cancel{opacity:.6}
-@media (max-width:640px){
-  .ticket{grid-template-columns:74px 1fr}
-  .price{grid-column:1 / -1;border-left:0;border-top:2px dashed var(--line);flex-direction:row;flex-wrap:wrap;align-items:center;gap:10px}
-  .price::before,.price::after{display:none}
-  .chip{margin-top:0}
+/* ---------- Filtros ---------- */
+main{padding-top:28px;padding-bottom:60px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip-f{flex:none;border:1.5px solid var(--line);background:var(--paper);border-radius:999px;padding:8px 15px;cursor:pointer;font-weight:600;font-size:.93rem;color:var(--ink-soft);transition:all .15s}
+.chip-f:hover{border-color:var(--c,var(--ink))}
+.chip-f[aria-pressed="true"]{background:var(--c,var(--ink));border-color:var(--c,var(--ink));color:#fff}
+.chip-f[aria-pressed="true"] .dot{background:#fff!important}
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+.filters input,.filters select{background:var(--paper);border:1.5px solid var(--line);border-radius:999px;padding:10px 15px}
+.filters input{flex:1 1 240px}
+.filters select{flex:0 1 180px}
+@media (max-width:560px){.filters select{flex:1 1 140px}}
+.count{color:var(--muted);font-size:.9rem;margin:0 0 10px 4px}
+
+/* ---------- Ticket ---------- */
+.list{display:flex;flex-direction:column;gap:14px}
+.ticket{--c:#868E96;display:grid;grid-template-columns:92px 1fr 220px;background:var(--paper);border-radius:var(--r-lg);box-shadow:var(--shadow);cursor:pointer;text-align:left;border:0;padding:0;width:100%;overflow:visible;transition:transform .15s,box-shadow .15s}
+.ticket:hover{transform:translateY(-2px);box-shadow:0 1px 2px rgba(34,26,69,.06),0 14px 30px -14px rgba(34,26,69,.3)}
+.ticket > div{padding:16px 18px}
+.stub{position:relative;border-radius:var(--r-lg) 0 0 var(--r-lg);background:color-mix(in srgb,var(--c) 12%,#fff);border-right:2px dashed color-mix(in srgb,var(--c) 30%,#fff);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--c)}
+.stub .day{font-size:2.1rem;font-weight:800;line-height:1}
+.stub .mon{font-size:.9rem;font-weight:600;text-transform:capitalize}
+.stub .yr{font-size:.75rem;opacity:.75}
+.notch::before,.notch::after{content:"";position:absolute;right:-10px;width:18px;height:18px;border-radius:50%;background:var(--bg)}
+.notch::before{top:-9px}.notch::after{bottom:-9px}
+.body{min-width:0}
+.body-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+.body h3{margin:0;font-size:1.18rem;font-weight:700}
+.prov{display:inline-flex;align-items:center;font-size:.76rem;font-weight:700;padding:3px 10px;border-radius:999px;color:#fff;background:var(--c)}
+.meta{color:var(--ink-soft);font-size:.92rem;line-height:1.5;overflow-wrap:anywhere}
+.meta.soft{color:var(--muted)}
+.price{position:relative;border-left:2px dashed var(--line);display:flex;flex-direction:column;justify-content:center;gap:4px}
+.price.notch::before,.price.notch::after{left:-10px;right:auto}
+.amt{font-size:1.35rem;font-weight:700;font-variant-numeric:tabular-nums}
+.mine-com{font-size:.9rem;color:var(--ok);font-weight:600;font-variant-numeric:tabular-nums}
+.progress{height:6px;border-radius:999px;background:#EEEAF6;overflow:hidden;margin-top:4px}
+.progress i{display:block;height:100%;background:var(--ok);border-radius:999px}
+.pay{display:flex;justify-content:space-between;gap:6px;align-items:center;font-size:.8rem;color:var(--muted);margin-top:2px}
+.state{font-size:.76rem;font-weight:700;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.state.Presupuesto{background:#EEECF4;color:var(--ink-soft)}
+.state.Seña{background:#FFF1D9;color:var(--warn)}
+.state.Pagado{background:#DFF3E7;color:var(--ok)}
+.state.Cancelado{background:#F9E1E1;color:var(--bad)}
+.ticket.cancel{opacity:.55}
+@media (max-width:680px){
+  .ticket{grid-template-columns:76px 1fr}
+  .price{grid-column:1 / -1;border-left:0;border-top:2px dashed var(--line)}
+  .price.notch::before,.price.notch::after{display:none}
+  .stub{border-radius:var(--r-lg) 0 0 0}
+  .stub.notch::after{display:none}
 }
-.empty{background:var(--paper);border-radius:var(--radius-lg);padding:40px 20px;text-align:center;color:var(--ink-soft)}
-.banner{background:#FBF0DC;color:#6B4A10;border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:18px;font-size:.92rem}
-.banner.err{background:#F6DEDC;color:#7A231F}
+.empty{background:var(--paper);border-radius:var(--r-lg);box-shadow:var(--shadow);padding:44px 20px;text-align:center;color:var(--ink-soft)}
+.empty .btn{margin-top:14px}
+.banner{border-radius:var(--r-sm);padding:10px 14px;margin-bottom:16px;font-size:.92rem;background:#FFF1D9;color:#6B4A10}
+.banner.err{background:#F9E1E1;color:#7A231F}
 
-/* Formulario */
-dialog{border:0;border-radius:var(--radius-lg);padding:0;width:min(720px,94vw);max-height:92vh;color:var(--ink)}
-dialog::backdrop{background:rgba(29,43,79,.45)}
-.dlg-head{padding:20px 24px 6px;display:flex;justify-content:space-between;align-items:center}
-.dlg-head h2{margin:0;font-size:1.5rem}
-.x{background:none;border:0;font-size:1.6rem;cursor:pointer;color:var(--ink-soft);line-height:1}
-form{padding:6px 24px 22px}
-fieldset{border:0;padding:0;margin:0 0 18px}
-legend{font-weight:700;margin-bottom:8px;font-size:1.02rem}
+/* ---------- Formulario ---------- */
+dialog{border:0;border-radius:var(--r-lg);padding:0;width:min(740px,94vw);max-height:92vh;color:var(--ink);box-shadow:0 30px 80px -20px rgba(20,12,50,.5)}
+dialog::backdrop{background:rgba(30,20,80,.5);backdrop-filter:blur(3px)}
+.dlg-head{position:sticky;top:0;z-index:1;background:#fff;padding:20px 26px 12px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line)}
+.dlg-head h2{margin:0;font-size:1.5rem;font-weight:800}
+.x{background:#F1EEF8;border:0;width:36px;height:36px;border-radius:50%;font-size:1.3rem;cursor:pointer;color:var(--ink-soft);line-height:1}
+.x:hover{background:#E5E0F2}
+form{padding:18px 26px 22px}
+fieldset{border:0;padding:0;margin:0 0 22px}
+legend{font-weight:700;margin-bottom:10px;font-size:1.05rem}
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.grid.three{grid-template-columns:repeat(3,1fr)}
 .grid .full{grid-column:1 / -1}
-@media (max-width:560px){.grid{grid-template-columns:1fr}}
-label{display:flex;flex-direction:column;gap:4px;font-size:.88rem;color:var(--ink-soft)}
-label input,label select,label textarea{border:1.5px solid var(--line);border-radius:var(--radius-sm);padding:9px 11px;background:#fff;color:var(--ink);font-size:1rem}
-label textarea{min-height:70px;resize:vertical}
-.calc{background:var(--sky);border-radius:var(--radius-sm);padding:10px 12px;font-size:.92rem;font-variant-numeric:tabular-nums}
-.form-actions{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:16px}
-.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .2s}
-.toast.show{opacity:1}
+@media (max-width:560px){.grid,.grid.three{grid-template-columns:1fr}}
+label{display:flex;flex-direction:column;gap:5px;min-width:0;font-size:.87rem;color:var(--ink-soft);font-weight:500}
+label input,label select,label textarea{width:100%;min-width:0;border:1.5px solid var(--line);border-radius:var(--r-sm);padding:10px 12px;background:#FCFBFE;color:var(--ink);font-size:1rem;font-weight:400}
+label input:focus,label select:focus,label textarea:focus{border-color:#8C5CD6;background:#fff;outline:none}
+label textarea{min-height:74px;resize:vertical}
+.prov-pick{display:flex;flex-wrap:wrap;gap:8px}
+.prov-pick label{position:relative;flex-direction:row;align-items:center;cursor:pointer;border:1.5px solid var(--line);border-radius:999px;padding:8px 14px;font-weight:600;color:var(--ink-soft);background:#fff}
+.prov-pick input{position:absolute;opacity:0;pointer-events:none}
+.prov-pick label:has(input:checked){background:var(--c);border-color:var(--c);color:#fff}
+.prov-pick label:has(input:checked) .dot{background:#fff!important}
+.prov-pick label:has(input:focus-visible){outline:3px solid #8C5CD6;outline-offset:2px}
+.calc{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;background:#F4F1FB;border-radius:var(--r-md);padding:12px 14px;font-variant-numeric:tabular-nums}
+.calc div span{display:block;font-size:.8rem;color:var(--ink-soft)}
+.calc div strong{font-size:1.08rem}
+.calc .warn{grid-column:1 / -1;color:var(--bad);font-size:.85rem}
+.form-actions{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:16px}
+.toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translate(-50%,10px);background:var(--ink);color:#fff;padding:11px 20px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:10}
+.toast.show{opacity:1;transform:translate(-50%,0)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header class="top">
-    <div>
-      <h1>Mis ventas</h1>
-      <p class="sub">Viajes vendidos a Disney y Universal Orlando</p>
+<header class="hero">
+  <div class="wrap">
+    <div class="hero-top">
+      <div>
+        <h1>Mis ventas</h1>
+        <p class="sub">Disney, Universal, Expedia, Bedsonline y cruceros</p>
+      </div>
+      <div class="actions">
+        <button class="btn glass" id="btnCsv" type="button">Exportar CSV</button>
+        <button class="btn light" id="btnNew" type="button">+ Nueva venta</button>
+      </div>
     </div>
-    <div class="actions">
-      <button class="btn ghost" id="btnCsv" type="button">Exportar CSV</button>
-      <button class="btn" id="btnNew" type="button">Nueva venta</button>
-    </div>
-  </header>
+    <section class="stats" aria-label="Resumen">
+      <div class="stat"><span>Total vendido</span><strong id="sTotal">US$ 0</strong></div>
+      <div class="stat"><span>Comisión total</span><strong id="sComT">US$ 0</strong></div>
+      <div class="stat mine"><span>Mi comisión</span><strong id="sComA">US$ 0</strong></div>
+      <div class="stat"><span>Cobrado</span><strong id="sCob">US$ 0</strong></div>
+      <div class="stat"><span>Saldo por cobrar</span><strong id="sSaldo">US$ 0</strong></div>
+    </section>
+    <div class="mix" id="mix"></div>
+  </div>
+</header>
 
+<main class="wrap">
   <div id="banner"></div>
-
-  <section class="summary" aria-label="Resumen">
-    <div class="hl"><span>Total vendido</span><strong id="sTotal">US$ 0</strong></div>
-    <div><span>Mis comisiones</span><strong id="sCom">US$ 0</strong></div>
-    <div><span>Cobrado</span><strong id="sCob">US$ 0</strong></div>
-    <div><span>Saldo por cobrar</span><strong id="sSaldo">US$ 0</strong></div>
-  </section>
-
+  <div class="chips" id="chips" role="group" aria-label="Filtrar por proveedor"></div>
   <div class="filters">
-    <input id="fText" type="search" placeholder="Buscar cliente, hotel, parques…" aria-label="Buscar">
-    <select id="fDest" aria-label="Destino"><option value="">Todos los destinos</option><option>Disney</option><option>Universal</option><option>Disney + Universal</option></select>
+    <input id="fText" type="search" placeholder="Buscar cliente, hotel, barco, notas…" aria-label="Buscar">
     <select id="fEstado" aria-label="Estado"><option value="">Todos los estados</option><option>Presupuesto</option><option>Seña</option><option>Pagado</option><option>Cancelado</option></select>
     <select id="fAnio" aria-label="Año de venta"><option value="">Todos los años</option></select>
   </div>
-
+  <p class="count" id="count"></p>
   <div class="list" id="list"></div>
-</div>
+</main>
 
 <dialog id="dlg">
   <div class="dlg-head"><h2 id="dlgTitle">Nueva venta</h2><button class="x" type="button" id="btnClose" aria-label="Cerrar">×</button></div>
   <form id="form" method="dialog" novalidate>
     <fieldset>
+      <legend>Proveedor</legend>
+      <div class="prov-pick" id="provPick"></div>
+    </fieldset>
+    <fieldset>
       <legend>Cliente</legend>
       <div class="grid">
-        <label class="full">Nombre y apellido<input name="cliente" required></label>
-        <label>Email<input name="email" type="email"></label>
-        <label>Teléfono / WhatsApp<input name="telefono" type="tel"></label>
+        <label class="full">Nombre y apellido<input name="cliente" required autocomplete="off"></label>
+        <label>Email<input name="email" type="email" autocomplete="off"></label>
+        <label>Teléfono / WhatsApp<input name="telefono" type="tel" autocomplete="off"></label>
       </div>
     </fieldset>
     <fieldset>
       <legend>Viaje</legend>
       <div class="grid">
-        <label>Destino<select name="destino"><option>Disney</option><option>Universal</option><option>Disney + Universal</option></select></label>
         <label>Fecha de venta<input name="fechaVenta" type="date" required></label>
-        <label>Llegada<input name="fechaDesde" type="date"></label>
-        <label>Salida<input name="fechaHasta" type="date"></label>
+        <span></span>
+        <label>Salida / llegada<input name="fechaDesde" type="date"></label>
+        <label>Regreso<input name="fechaHasta" type="date"></label>
         <label>Adultos<input name="adultos" type="number" min="0" value="2"></label>
         <label>Niños<input name="ninos" type="number" min="0" value="0"></label>
-        <label class="full">Parques<input name="parques" placeholder="Ej.: Magic Kingdom, EPCOT, Islands of Adventure"></label>
-        <label>Tickets<input name="tickets" placeholder="Ej.: 4 días Park Hopper"></label>
-        <label>Hotel<input name="hotel" placeholder="Ej.: Pop Century"></label>
+        <label class="full">Parques / itinerario<input name="parques" placeholder="Ej.: Magic Kingdom, EPCOT — o ruta del crucero"></label>
+        <label>Tickets / servicios<input name="tickets" placeholder="Ej.: 4 días Park Hopper, traslados"></label>
+        <label>Hotel / barco<input name="hotel" placeholder="Ej.: Pop Century, Wonder of the Seas"></label>
       </div>
     </fieldset>
     <fieldset>
-      <legend>Montos (US$)</legend>
-      <div class="grid">
-        <label>Monto total<input name="montoTotal" type="number" min="0" step="0.01" inputmode="decimal"></label>
-        <label>Comisión %<input name="comisionPct" type="number" min="0" step="0.01" inputmode="decimal"></label>
-        <label>Comisión US$<input name="comision" type="number" min="0" step="0.01" inputmode="decimal"></label>
-        <label>Cobrado al cliente<input name="montoCobrado" type="number" min="0" step="0.01" inputmode="decimal"></label>
-        <label>Estado de pago<select name="estado"><option>Presupuesto</option><option>Seña</option><option>Pagado</option><option>Cancelado</option></select></label>
-        <label>Vence el saldo<input name="vencimiento" type="date"></label>
-        <div class="calc full" id="calc">Saldo: US$ 0</div>
-        <label class="full">Notas<textarea name="notas"></textarea></label>
+      <legend>Montos y comisiones (US$)</legend>
+      <div class="grid three">
+        <label class="full">Monto total de la venta<input name="montoTotal" type="number" min="0" step="0.01" inputmode="decimal"></label>
+        <label>Comisión total %<input name="comisionPct" type="number" min="0" step="0.01" inputmode="decimal"></label>
+        <label>Comisión total US$<input name="comision" type="number" min="0" step="0.01" inputmode="decimal"></label>
+        <label>Mi comisión US$<input name="comisionAgente" type="number" min="0" step="0.01" inputmode="decimal"></label>
       </div>
+    </fieldset>
+    <fieldset>
+      <legend>Cobro al cliente</legend>
+      <div class="grid three">
+        <label>Cobrado US$<input name="montoCobrado" type="number" min="0" step="0.01" inputmode="decimal"></label>
+        <label>Estado<select name="estado"><option>Presupuesto</option><option>Seña</option><option>Pagado</option><option>Cancelado</option></select></label>
+        <label>Vence el saldo<input name="vencimiento" type="date"></label>
+      </div>
+    </fieldset>
+    <div class="calc" id="calc"></div>
+    <fieldset style="margin-top:18px">
+      <label>Notas<textarea name="notas"></textarea></label>
     </fieldset>
     <div class="form-actions">
       <button class="btn danger" type="button" id="btnDelete" hidden>Eliminar venta</button>
@@ -190,7 +261,6 @@ label textarea{min-height:70px;resize:vertical}
 
 <script type="module">
 // ================== CONFIGURACIÓN FIREBASE ==================
-// Pegá acá la config de tu proyecto (Consola Firebase → Configuración del proyecto → Tus apps → Web).
 const firebaseConfig = {
   apiKey: "AIzaSyBh9RTw6CuVV9Qx8u1Wn_mGd4uo5HyQyOw",
   authDomain: "agente-disney.firebaseapp.com",
@@ -202,32 +272,39 @@ const firebaseConfig = {
 const COLECCION = "ventas_disney";
 // =============================================================
 
+const PROVEEDORES = {
+  "Disney":     "#3B5BDB",
+  "Universal":  "#E8870B",
+  "Expedia":    "#7048E8",
+  "Bedsonline": "#D6336C",
+  "Cruceros":   "#0C8599"
+};
+const colorDe = p => PROVEEDORES[p] || "#868E96";
+
 const $ = s => document.querySelector(s);
 const fmt = n => "US$ " + (Number(n)||0).toLocaleString("es-AR",{minimumFractionDigits:0,maximumFractionDigits:2});
 const num = v => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const MESES = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+const cuenta = v => v.estado !== "Cancelado" && v.estado !== "Presupuesto";
 
-let ventas = [];
-let editId = null;
-let store; // capa de datos: Firebase o modo prueba
+let ventas = [], editId = null, fProv = "", store;
 
 function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("show"),2200); }
 function banner(msg, err=false){ $("#banner").innerHTML = msg ? `<div class="banner ${err?"err":""}">${msg}</div>` : ""; }
 
-// ---------- Capa de datos ----------
+// ---------- Datos ----------
 const configurado = !firebaseConfig.apiKey.startsWith("PEGAR");
 
 async function initFirebase(){
   const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
   const fs = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
-  const app = initializeApp(firebaseConfig);
-  const db = fs.getFirestore(app);
+  const db = fs.getFirestore(initializeApp(firebaseConfig));
   const col = fs.collection(db, COLECCION);
   return {
     subscribe(cb){
       fs.onSnapshot(fs.query(col, fs.orderBy("fechaVenta","desc")),
-        snap => cb(snap.docs.map(d => ({ id:d.id, ...d.data() }))),
+        snap => { banner(""); cb(snap.docs.map(d => ({ id:d.id, ...d.data() }))); },
         e => banner("No se pudieron leer las ventas de Firebase: " + esc(e.message) + ". Revisá las reglas de Firestore.", true));
     },
     add: data => fs.addDoc(col, { ...data, creado: fs.serverTimestamp() }),
@@ -238,10 +315,10 @@ async function initFirebase(){
 
 function initLocal(){
   const KEY = "ventas_disney_prueba";
-  let listeners = [];
+  const listeners = [];
   const read = () => { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch { return []; } };
-  const write = arr => { try { localStorage.setItem(KEY, JSON.stringify(arr)); } catch {} listeners.forEach(cb => cb(sorted())); };
   const sorted = () => read().sort((a,b) => (b.fechaVenta||"").localeCompare(a.fechaVenta||""));
+  const write = arr => { try { localStorage.setItem(KEY, JSON.stringify(arr)); } catch {} listeners.forEach(cb => cb(sorted())); };
   return {
     subscribe(cb){ listeners.push(cb); cb(sorted()); },
     async add(data){ const arr = read(); arr.push({ ...data, id: crypto.randomUUID() }); write(arr); },
@@ -250,56 +327,83 @@ function initLocal(){
   };
 }
 
-// ---------- Render ----------
+// ---------- Filtros ----------
+function renderChips(){
+  const opts = [["", "Todos", null], ...Object.entries(PROVEEDORES).map(([p,c]) => [p, p, c])];
+  $("#chips").innerHTML = opts.map(([val,label,c]) =>
+    `<button type="button" class="chip-f" data-p="${esc(val)}" aria-pressed="${fProv===val}" ${c?`style="--c:${c}"`:""}>${c?`<span class="dot" style="background:${c}"></span>`:""}${esc(label)}</button>`
+  ).join("");
+}
+$("#chips").addEventListener("click", e => {
+  const b = e.target.closest(".chip-f"); if (!b) return;
+  fProv = b.dataset.p; renderChips(); render();
+});
+
 function filtradas(){
   const t = $("#fText").value.trim().toLowerCase();
-  const d = $("#fDest").value, e = $("#fEstado").value, a = $("#fAnio").value;
+  const e = $("#fEstado").value, a = $("#fAnio").value;
   return ventas.filter(v =>
-    (!d || v.destino === d) &&
+    (!fProv || v.destino === fProv) &&
     (!e || v.estado === e) &&
     (!a || (v.fechaVenta||"").startsWith(a)) &&
-    (!t || [v.cliente,v.email,v.telefono,v.hotel,v.parques,v.tickets,v.notas].join(" ").toLowerCase().includes(t))
+    (!t || [v.cliente,v.email,v.telefono,v.hotel,v.parques,v.tickets,v.notas,v.destino].join(" ").toLowerCase().includes(t))
   );
 }
 
+// ---------- Render ----------
 function render(){
-  // años disponibles
   const anios = [...new Set(ventas.map(v => (v.fechaVenta||"").slice(0,4)).filter(Boolean))].sort().reverse();
   const selA = $("#fAnio"), cur = selA.value;
   selA.innerHTML = `<option value="">Todos los años</option>` + anios.map(y => `<option ${y===cur?"selected":""}>${y}</option>`).join("");
 
   const lista = filtradas();
-  const activas = lista.filter(v => v.estado !== "Cancelado" && v.estado !== "Presupuesto");
-  const total = activas.reduce((s,v) => s + num(v.montoTotal), 0);
-  const com = activas.reduce((s,v) => s + num(v.comision), 0);
-  const cob = activas.reduce((s,v) => s + num(v.montoCobrado), 0);
+  const activas = lista.filter(cuenta);
+  const sum = k => activas.reduce((s,v) => s + num(v[k]), 0);
+  const total = sum("montoTotal");
   $("#sTotal").textContent = fmt(total);
-  $("#sCom").textContent = fmt(com);
-  $("#sCob").textContent = fmt(cob);
-  $("#sSaldo").textContent = fmt(Math.max(total - cob, 0));
+  $("#sComT").textContent = fmt(sum("comision"));
+  $("#sComA").textContent = fmt(sum("comisionAgente"));
+  $("#sCob").textContent = fmt(sum("montoCobrado"));
+  $("#sSaldo").textContent = fmt(activas.reduce((s,v) => s + Math.max(num(v.montoTotal) - num(v.montoCobrado), 0), 0));
+
+  // Mezcla por proveedor
+  const porProv = {};
+  activas.forEach(v => { porProv[v.destino] = (porProv[v.destino]||0) + num(v.montoTotal); });
+  const entradas = Object.entries(porProv).filter(([,m]) => m > 0).sort((a,b) => b[1]-a[1]);
+  $("#mix").innerHTML = total > 0 ? `
+    <div class="mix-bar" role="img" aria-label="Ventas por proveedor">${entradas.map(([p,m]) => `<i style="width:${m/total*100}%;background:${colorDe(p)}"></i>`).join("")}</div>
+    <div class="mix-legend">${entradas.map(([p,m]) => `<span><span class="dot" style="background:${colorDe(p)}"></span>${esc(p)} <b>${fmt(m)}</b></span>`).join("")}</div>` : "";
+
+  $("#count").textContent = lista.length ? `${lista.length} venta${lista.length!==1?"s":""}` : "";
 
   if (!lista.length){
-    $("#list").innerHTML = `<div class="empty">${ventas.length ? "Ninguna venta coincide con los filtros." : "Todavía no cargaste ventas. Tocá “Nueva venta” para registrar la primera."}</div>`;
+    $("#list").innerHTML = ventas.length
+      ? `<div class="empty">Ninguna venta coincide con los filtros.</div>`
+      : `<div class="empty">Todavía no cargaste ventas.<br><button class="btn" type="button" data-new>+ Cargar la primera</button></div>`;
     return;
   }
   $("#list").innerHTML = lista.map(v => {
+    const c = colorDe(v.destino);
     const f = v.fechaDesde || v.fechaVenta || "";
     const [y,m,dd] = f.split("-");
-    const cls = v.destino === "Universal" ? "u" : v.destino === "Disney + Universal" ? "du" : "d";
     const pax = [num(v.adultos) && `${num(v.adultos)} adulto${num(v.adultos)!==1?"s":""}`, num(v.ninos) && `${num(v.ninos)} niño${num(v.ninos)!==1?"s":""}`].filter(Boolean).join(", ");
     const rango = v.fechaDesde ? `${fechaCorta(v.fechaDesde)}${v.fechaHasta ? " al " + fechaCorta(v.fechaHasta) : ""}` : "Sin fechas de viaje";
-    const saldo = num(v.montoTotal) - num(v.montoCobrado);
-    return `<button class="ticket ${v.estado==="Cancelado"?"cancel":""}" data-id="${esc(v.id)}" type="button">
-      <div class="stub">${f ? `<span class="day">${+dd}</span><span class="mon">${MESES[+m-1]}</span><span class="yr">${y}</span>` : `<span class="mon">—</span>`}</div>
+    const t = num(v.montoTotal), cob = num(v.montoCobrado);
+    const pct = t > 0 ? Math.min(cob / t * 100, 100) : 0;
+    const saldo = Math.max(t - cob, 0);
+    const detalle = [v.parques, v.tickets, v.hotel].filter(Boolean).map(esc).join(" / ");
+    return `<button class="ticket ${v.estado==="Cancelado"?"cancel":""}" data-id="${esc(v.id)}" type="button" style="--c:${c}">
+      <div class="stub notch">${f ? `<span class="day">${+dd}</span><span class="mon">${MESES[+m-1]}</span><span class="yr">${y}</span>` : `<span class="mon">Sin fecha</span>`}</div>
       <div class="body">
-        <h3>${esc(v.cliente)}</h3>
-        <div class="meta"><span class="dest ${cls}">${esc(v.destino)}</span>${esc(rango)}${pax ? " — " + esc(pax) : ""}</div>
-        <div class="meta">${[v.parques, v.tickets, v.hotel].filter(Boolean).map(esc).join(" / ") || "Sin detalle de parques ni hotel"}</div>
+        <div class="body-top"><h3>${esc(v.cliente)}</h3><span class="prov">${esc(v.destino || "Sin proveedor")}</span></div>
+        <div class="meta">${esc(rango)}${pax ? " — " + esc(pax) : ""}</div>
+        <div class="meta ${detalle?"":"soft"}">${detalle || "Sin detalle de servicios"}</div>
       </div>
-      <div class="price">
-        <span class="amt">${fmt(v.montoTotal)}</span>
-        <span class="com">Comisión ${fmt(v.comision)}</span>
-        <span class="chip ${esc(v.estado)}">${esc(v.estado)}${saldo > 0 && v.estado !== "Cancelado" && v.estado !== "Presupuesto" ? " · debe " + fmt(saldo) : ""}</span>
+      <div class="price notch">
+        <span class="amt">${fmt(t)}</span>
+        <span class="mine-com">Mi comisión ${fmt(v.comisionAgente)}</span>
+        <div class="progress" aria-hidden="true"><i style="width:${pct}%"></i></div>
+        <div class="pay"><span>${v.estado==="Pagado" || saldo===0 ? "Sin saldo" : "Debe " + fmt(saldo)}</span><span class="state ${esc(v.estado)}">${esc(v.estado)}</span></div>
       </div>
     </button>`;
   }).join("");
@@ -310,40 +414,61 @@ function fechaCorta(s){ const [y,m,d] = s.split("-"); return `${+d} ${MESES[+m-1
 const form = $("#form"), dlg = $("#dlg");
 const hoy = () => new Date().toLocaleDateString("sv-SE");
 
+$("#provPick").innerHTML = Object.entries(PROVEEDORES).map(([p,c]) =>
+  `<label style="--c:${c}"><input type="radio" name="destino" value="${p}"><span class="dot" style="background:${c}"></span>${p}</label>`).join("");
+
 function abrir(v){
   editId = v?.id || null;
   form.reset();
   $("#dlgTitle").textContent = v ? "Editar venta" : "Nueva venta";
   $("#btnDelete").hidden = !v;
   $("#btnSave").textContent = v ? "Guardar cambios" : "Guardar venta";
-  if (v) for (const [k,val] of Object.entries(v)) { const el = form.elements[k]; if (el && typeof val !== "object") el.value = val; }
-  else form.elements.fechaVenta.value = hoy();
+  if (v) {
+    for (const [k,val] of Object.entries(v)) {
+      const el = form.elements[k];
+      if (!el || typeof val === "object") continue;
+      if (k === "destino") { const r = form.querySelector(`input[name=destino][value="${CSS.escape(val)}"]`); if (r) r.checked = true; }
+      else el.value = val;
+    }
+  } else {
+    form.elements.fechaVenta.value = hoy();
+    form.querySelector("input[name=destino]").checked = true;
+  }
   actualizarCalc();
   dlg.showModal();
+  dlg.scrollTop = 0;
 }
 
 function actualizarCalc(){
-  const t = num(form.montoTotal.value), c = num(form.montoCobrado.value);
-  $("#calc").textContent = `Saldo del cliente: ${fmt(Math.max(t - c, 0))}${t && c > t ? " (cobrado mayor al total)" : ""}`;
+  const t = num(form.montoTotal.value), comT = num(form.comision.value), comA = num(form.comisionAgente.value), cob = num(form.montoCobrado.value);
+  const warns = [];
+  if (comA > comT && comT > 0) warns.push("Tu comisión es mayor que la comisión total.");
+  if (t && cob > t) warns.push("Lo cobrado supera el monto total.");
+  $("#calc").innerHTML = `
+    <div><span>Parte agencia</span><strong>${fmt(Math.max(comT - comA, 0))}</strong></div>
+    <div><span>Saldo del cliente</span><strong>${fmt(Math.max(t - cob, 0))}</strong></div>
+    ${warns.length ? `<div class="warn">${warns.join(" ")}</div>` : ""}`;
 }
-// Comisión: % y monto se mantienen sincronizados
-form.comisionPct.addEventListener("input", () => { const t = num(form.montoTotal.value); if (form.comisionPct.value !== "") form.comision.value = +(t * num(form.comisionPct.value) / 100).toFixed(2); });
-form.comision.addEventListener("input", () => { const t = num(form.montoTotal.value); if (t) form.comisionPct.value = +(num(form.comision.value) / t * 100).toFixed(2); });
+form.comisionPct.addEventListener("input", () => { if (form.comisionPct.value !== "") form.comision.value = +(num(form.montoTotal.value) * num(form.comisionPct.value) / 100).toFixed(2); actualizarCalc(); });
+form.comision.addEventListener("input", () => { const t = num(form.montoTotal.value); if (t) form.comisionPct.value = +(num(form.comision.value) / t * 100).toFixed(2); actualizarCalc(); });
 form.montoTotal.addEventListener("input", () => { if (form.comisionPct.value !== "") form.comision.value = +(num(form.montoTotal.value) * num(form.comisionPct.value) / 100).toFixed(2); actualizarCalc(); });
+form.comisionAgente.addEventListener("input", actualizarCalc);
 form.montoCobrado.addEventListener("input", actualizarCalc);
 
 form.addEventListener("submit", async e => {
   e.preventDefault();
-  if (!form.cliente.value.trim()) { form.cliente.focus(); toast("Falta el nombre del cliente"); return; }
-  if (!form.fechaVenta.value) { form.fechaVenta.focus(); toast("Falta la fecha de venta"); return; }
-  if (form.fechaDesde.value && form.fechaHasta.value && form.fechaHasta.value < form.fechaDesde.value) { form.fechaHasta.focus(); toast("La salida es anterior a la llegada"); return; }
   const f = Object.fromEntries(new FormData(form));
+  if (!f.destino) { toast("Elegí un proveedor"); return; }
+  if (!f.cliente.trim()) { form.cliente.focus(); toast("Falta el nombre del cliente"); return; }
+  if (!f.fechaVenta) { form.fechaVenta.focus(); toast("Falta la fecha de venta"); return; }
+  if (f.fechaDesde && f.fechaHasta && f.fechaHasta < f.fechaDesde) { form.fechaHasta.focus(); toast("El regreso es anterior a la salida"); return; }
   const data = {
+    destino: f.destino,
     cliente: f.cliente.trim(), email: f.email.trim(), telefono: f.telefono.trim(),
-    destino: f.destino, fechaVenta: f.fechaVenta, fechaDesde: f.fechaDesde, fechaHasta: f.fechaHasta,
+    fechaVenta: f.fechaVenta, fechaDesde: f.fechaDesde, fechaHasta: f.fechaHasta,
     adultos: num(f.adultos), ninos: num(f.ninos),
     parques: f.parques.trim(), tickets: f.tickets.trim(), hotel: f.hotel.trim(),
-    montoTotal: num(f.montoTotal), comisionPct: num(f.comisionPct), comision: num(f.comision),
+    montoTotal: num(f.montoTotal), comisionPct: num(f.comisionPct), comision: num(f.comision), comisionAgente: num(f.comisionAgente),
     montoCobrado: num(f.montoCobrado), estado: f.estado, vencimiento: f.vencimiento, notas: f.notas.trim()
   };
   $("#btnSave").disabled = true;
@@ -363,26 +488,31 @@ $("#btnDelete").addEventListener("click", async () => {
 $("#btnNew").addEventListener("click", () => abrir());
 $("#btnClose").addEventListener("click", () => dlg.close());
 $("#btnCancel").addEventListener("click", () => dlg.close());
-$("#list").addEventListener("click", e => { const b = e.target.closest(".ticket"); if (b) abrir(ventas.find(v => v.id === b.dataset.id)); });
-["#fText","#fDest","#fEstado","#fAnio"].forEach(s => $(s).addEventListener("input", render));
+$("#list").addEventListener("click", e => {
+  if (e.target.closest("[data-new]")) return abrir();
+  const b = e.target.closest(".ticket"); if (b) abrir(ventas.find(v => v.id === b.dataset.id));
+});
+["#fText","#fEstado","#fAnio"].forEach(s => $(s).addEventListener("input", render));
 
-// ---------- Exportar CSV ----------
+// ---------- CSV ----------
 $("#btnCsv").addEventListener("click", () => {
-  const cols = ["fechaVenta","cliente","email","telefono","destino","fechaDesde","fechaHasta","adultos","ninos","parques","tickets","hotel","montoTotal","comisionPct","comision","montoCobrado","estado","vencimiento","notas"];
+  const cols = [["fechaVenta","Fecha venta"],["destino","Proveedor"],["cliente","Cliente"],["email","Email"],["telefono","Teléfono"],["fechaDesde","Salida"],["fechaHasta","Regreso"],["adultos","Adultos"],["ninos","Niños"],["parques","Parques / itinerario"],["tickets","Tickets / servicios"],["hotel","Hotel / barco"],["montoTotal","Monto total"],["comisionPct","Comisión total %"],["comision","Comisión total"],["comisionAgente","Mi comisión"],["parteAgencia","Parte agencia"],["montoCobrado","Cobrado"],["saldo","Saldo"],["estado","Estado"],["vencimiento","Vence saldo"],["notas","Notas"]];
   const q = v => `"${String(v ?? "").replace(/"/g,'""')}"`;
-  const csv = "\ufeff" + [cols.join(";"), ...filtradas().map(v => cols.map(c => q(v[c])).join(";"))].join("\n");
+  const filas = filtradas().map(v => ({ ...v, parteAgencia: num(v.comision) - num(v.comisionAgente), saldo: Math.max(num(v.montoTotal) - num(v.montoCobrado), 0) }));
+  const csv = "\ufeff" + [cols.map(c => q(c[1])).join(";"), ...filas.map(v => cols.map(([k]) => q(v[k])).join(";"))].join("\n");
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([csv], { type:"text/csv;charset=utf-8" }));
-  a.download = `ventas-disney-${hoy()}.csv`;
+  a.download = `mis-ventas-${hoy()}.csv`;
   a.click();
-  URL.revokeObjectURL(a.href);
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 });
 
 // ---------- Arranque ----------
+renderChips();
 (async () => {
   try {
     if (configurado) store = await initFirebase();
-    else { store = initLocal(); banner("Modo prueba: los datos se guardan solo en este navegador. Pegá la configuración de Firebase en el código para compartirlos entre dispositivos."); }
+    else { store = initLocal(); banner("Modo prueba: los datos se guardan solo en este navegador."); }
   } catch (err) {
     store = initLocal();
     banner("No se pudo conectar con Firebase (" + esc(err.message) + "). Estás en modo prueba local.", true);
