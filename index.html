@@ -100,6 +100,7 @@ main{padding-top:28px;padding-bottom:60px}
 .body-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
 .body h3{margin:0;font-size:1.18rem;font-weight:700}
 .prov{display:inline-flex;align-items:center;font-size:.76rem;font-weight:700;padding:3px 10px;border-radius:999px;color:#fff;background:var(--c)}
+.resv{font-size:.8rem;font-weight:600;color:var(--ink-soft);background:#F1EEF8;padding:3px 9px;border-radius:999px;font-variant-numeric:tabular-nums}
 .meta{color:var(--ink-soft);font-size:.92rem;line-height:1.5;overflow-wrap:anywhere}
 .meta.soft{color:var(--muted)}
 .price{position:relative;border-left:2px dashed var(--line);display:flex;flex-direction:column;justify-content:center;gap:4px}
@@ -199,7 +200,7 @@ label textarea{min-height:74px;resize:vertical}
     <div class="hero-top">
       <div>
         <h1>Mis ventas</h1>
-        <p class="sub">Disney, Universal, Expedia, Bedsonline y cruceros</p>
+        <p class="sub">Disney, Universal, Expedia, Bedsonline, Price Agencies y cruceros</p>
         <div class="user" id="userBox" hidden><span id="userMail"></span><button type="button" id="btnLogout">Salir</button></div>
       </div>
       <div class="actions">
@@ -222,7 +223,7 @@ label textarea{min-height:74px;resize:vertical}
   <div id="banner"></div>
   <div class="chips" id="chips" role="group" aria-label="Filtrar por proveedor"></div>
   <div class="filters">
-    <input id="fText" type="search" placeholder="Buscar cliente, hotel, barco, notas…" aria-label="Buscar">
+    <input id="fText" type="search" placeholder="Buscar cliente, reserva, hotel, barco…" aria-label="Buscar">
     <select id="fEstado" aria-label="Estado"><option value="">Todos los estados</option><option>Presupuesto</option><option>Seña</option><option>Pagado</option><option>Cancelado</option></select>
     <select id="fAnio" aria-label="Año de venta"><option value="">Todos los años</option></select>
   </div>
@@ -236,6 +237,9 @@ label textarea{min-height:74px;resize:vertical}
     <fieldset>
       <legend>Proveedor</legend>
       <div class="prov-pick" id="provPick"></div>
+      <div class="grid" style="margin-top:12px">
+        <label>N° de reserva<input name="numReserva" autocomplete="off" placeholder="Ej.: 4832917"></label>
+      </div>
     </fieldset>
     <fieldset>
       <legend>Cliente</legend>
@@ -310,7 +314,8 @@ const PROVEEDORES = {
   "Universal":  "#E8870B",
   "Expedia":    "#7048E8",
   "Bedsonline": "#D6336C",
-  "Cruceros":   "#0C8599"
+  "Cruceros":   "#0C8599",
+  "Price Agencies": "#2F9E44"
 };
 const colorDe = p => PROVEEDORES[p] || "#868E96";
 
@@ -398,7 +403,7 @@ function filtradas(){
     (!fProv || v.destino === fProv) &&
     (!e || v.estado === e) &&
     (!a || (v.fechaVenta||"").startsWith(a)) &&
-    (!t || [v.cliente,v.email,v.telefono,v.hotel,v.parques,v.tickets,v.notas,v.destino].join(" ").toLowerCase().includes(t))
+    (!t || [v.cliente,v.email,v.telefono,v.hotel,v.parques,v.tickets,v.notas,v.destino,v.numReserva].join(" ").toLowerCase().includes(t))
   );
 }
 
@@ -447,7 +452,7 @@ function render(){
     return `<button class="ticket ${v.estado==="Cancelado"?"cancel":""}" data-id="${esc(v.id)}" type="button" style="--c:${c}">
       <div class="stub notch">${f ? `<span class="day">${+dd}</span><span class="mon">${MESES[+m-1]}</span><span class="yr">${y}</span>` : `<span class="mon">Sin fecha</span>`}</div>
       <div class="body">
-        <div class="body-top"><h3>${esc(v.cliente)}</h3><span class="prov">${esc(v.destino || "Sin proveedor")}</span></div>
+        <div class="body-top"><h3>${esc(v.cliente)}</h3><span class="prov">${esc(v.destino || "Sin proveedor")}</span>${v.numReserva ? `<span class="resv">Reserva ${esc(v.numReserva)}</span>` : ""}</div>
         <div class="meta">${esc(rango)}${pax ? " — " + esc(pax) : ""}</div>
         <div class="meta ${detalle?"":"soft"}">${detalle || "Sin detalle de servicios"}</div>
       </div>
@@ -515,7 +520,7 @@ form.addEventListener("submit", async e => {
   if (!f.fechaVenta) { form.fechaVenta.focus(); toast("Falta la fecha de venta"); return; }
   if (f.fechaDesde && f.fechaHasta && f.fechaHasta < f.fechaDesde) { form.fechaHasta.focus(); toast("El regreso es anterior a la salida"); return; }
   const data = {
-    destino: f.destino,
+    destino: f.destino, numReserva: (f.numReserva || "").trim(),
     cliente: f.cliente.trim(), email: f.email.trim(), telefono: f.telefono.trim(),
     fechaVenta: f.fechaVenta, fechaDesde: f.fechaDesde, fechaHasta: f.fechaHasta,
     adultos: num(f.adultos), ninos: num(f.ninos),
@@ -548,7 +553,7 @@ $("#list").addEventListener("click", e => {
 
 // ---------- CSV ----------
 $("#btnCsv").addEventListener("click", () => {
-  const cols = [["fechaVenta","Fecha venta"],["destino","Proveedor"],["cliente","Cliente"],["email","Email"],["telefono","Teléfono"],["fechaDesde","Salida"],["fechaHasta","Regreso"],["adultos","Adultos"],["ninos","Niños"],["parques","Parques / itinerario"],["tickets","Tickets / servicios"],["hotel","Hotel / barco"],["montoTotal","Monto total"],["comisionPct","Comisión total %"],["comision","Comisión total"],["comisionAgente","Mi comisión"],["parteAgencia","Parte agencia"],["montoCobrado","Cobrado"],["saldo","Saldo"],["estado","Estado"],["vencimiento","Vence saldo"],["notas","Notas"]];
+  const cols = [["fechaVenta","Fecha venta"],["destino","Proveedor"],["numReserva","N° de reserva"],["cliente","Cliente"],["email","Email"],["telefono","Teléfono"],["fechaDesde","Salida"],["fechaHasta","Regreso"],["adultos","Adultos"],["ninos","Niños"],["parques","Parques / itinerario"],["tickets","Tickets / servicios"],["hotel","Hotel / barco"],["montoTotal","Monto total"],["comisionPct","Comisión total %"],["comision","Comisión total"],["comisionAgente","Mi comisión"],["parteAgencia","Parte agencia"],["montoCobrado","Cobrado"],["saldo","Saldo"],["estado","Estado"],["vencimiento","Vence saldo"],["notas","Notas"]];
   const q = v => `"${String(v ?? "").replace(/"/g,'""')}"`;
   const filas = filtradas().map(v => ({ ...v, parteAgencia: num(v.comision) - num(v.comisionAgente), saldo: Math.max(num(v.montoTotal) - num(v.montoCobrado), 0) }));
   const csv = "\ufeff" + [cols.map(c => q(c[1])).join(";"), ...filas.map(v => cols.map(([k]) => q(v[k])).join(";"))].join("\n");
