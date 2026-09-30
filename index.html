@@ -85,6 +85,24 @@ main{padding-top:28px;padding-bottom:60px}
 @media (max-width:560px){.filters select{flex:1 1 140px}}
 .count{color:var(--muted);font-size:.9rem;margin:0 0 10px 4px}
 
+/* ---------- Ordenar ---------- */
+.sorter{display:grid;grid-template-columns:92px 1fr 220px;margin:0 0 8px;align-items:center}
+.sorter[hidden]{display:none!important}
+.sorter .lbl{display:none;color:var(--muted);font-size:.88rem;margin-right:4px}
+.sort-btn{background:none;border:0;cursor:pointer;font-weight:600;font-size:.85rem;color:var(--muted);padding:6px 18px;text-align:left;display:inline-flex;align-items:center;gap:5px;border-radius:999px;justify-self:start}
+.sort-btn[data-k="fecha"]{justify-self:center;padding:6px 10px}
+.sort-btn:hover{color:var(--ink)}
+.sort-btn.on{color:var(--ink)}
+.sort-btn .arr{font-size:.75rem;opacity:0}
+.sort-btn.on .arr{opacity:1}
+@media (max-width:680px){
+  .sorter{display:flex;flex-wrap:wrap;gap:6px}
+  .sorter .lbl{display:inline}
+  .sort-btn,.sort-btn[data-k="fecha"]{background:var(--paper);border:1.5px solid var(--line);padding:5px 10px;font-size:.82rem}
+  .sort-btn.on{border-color:var(--ink)}
+  .sort-btn .arr{opacity:.35}
+}
+
 /* ---------- Ticket ---------- */
 .list{display:flex;flex-direction:column;gap:14px}
 .ticket{--c:#868E96;display:grid;grid-template-columns:92px 1fr 220px;background:var(--paper);border-radius:var(--r-lg);box-shadow:var(--shadow);cursor:pointer;text-align:left;border:0;padding:0;width:100%;overflow:visible;transition:transform .15s,box-shadow .15s}
@@ -109,6 +127,7 @@ main{padding-top:28px;padding-bottom:60px}
 .mine-com{font-size:.9rem;color:var(--ok);font-weight:600;font-variant-numeric:tabular-nums}
 .progress{height:6px;border-radius:999px;background:#EEEAF6;overflow:hidden;margin-top:4px}
 .progress i{display:block;height:100%;background:var(--ok);border-radius:999px}
+.pay span:first-child{white-space:nowrap}
 .pay{display:flex;justify-content:space-between;gap:6px;align-items:center;font-size:.8rem;color:var(--muted);margin-top:2px}
 .state{font-size:.76rem;font-weight:700;padding:2px 9px;border-radius:999px;white-space:nowrap}
 .state.Presupuesto{background:#EEECF4;color:var(--ink-soft)}
@@ -228,6 +247,12 @@ label textarea{min-height:74px;resize:vertical}
     <select id="fAnio" aria-label="Año de venta"><option value="">Todos los años</option></select>
   </div>
   <p class="count" id="count"></p>
+  <div class="sorter" id="sorter" role="group" aria-label="Ordenar ventas">
+    <span class="lbl">Ordenar:</span>
+    <button type="button" class="sort-btn" data-k="fecha">Fecha <span class="arr"></span></button>
+    <button type="button" class="sort-btn" data-k="cliente">Cliente <span class="arr"></span></button>
+    <button type="button" class="sort-btn" data-k="monto">Monto <span class="arr"></span></button>
+  </div>
   <div class="list" id="list"></div>
 </main>
 
@@ -328,6 +353,30 @@ const cuenta = v => v.estado !== "Cancelado" && v.estado !== "Presupuesto";
 
 let ventas = [], editId = null, fProv = "", store;
 
+// ---------- Orden ----------
+const DIR_INICIAL = { fecha: "desc", cliente: "asc", monto: "desc" };
+let orden = { k: "fecha", dir: "desc" };
+try { const o = JSON.parse(localStorage.getItem("ventas_orden")); if (o && DIR_INICIAL[o.k] && (o.dir === "asc" || o.dir === "desc")) orden = o; } catch {}
+function ordenar(lista){
+  const m = orden.dir === "asc" ? 1 : -1;
+  const fecha = v => v.fechaDesde || v.fechaVenta || "";
+  return [...lista].sort((a,b) => {
+    if (orden.k === "cliente") return m * (a.cliente||"").localeCompare(b.cliente||"", "es", { sensitivity:"base" });
+    if (orden.k === "monto") return m * (num(a.montoTotal) - num(b.montoTotal));
+    const fa = fecha(a), fb = fecha(b);
+    if (!fa || !fb) return fa ? -1 : fb ? 1 : 0; // sin fecha, siempre al final
+    return m * fa.localeCompare(fb);
+  });
+}
+function pintarOrden(){
+  document.querySelectorAll(".sort-btn").forEach(b => {
+    const on = b.dataset.k === orden.k;
+    b.classList.toggle("on", on);
+    b.querySelector(".arr").textContent = on ? (orden.dir === "asc" ? "▲" : "▼") : "▼";
+    b.setAttribute("aria-pressed", on);
+  });
+}
+
 function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("show"),2200); }
 function banner(msg, err=false){ $("#banner").innerHTML = msg ? `<div class="banner ${err?"err":""}">${msg}</div>` : ""; }
 
@@ -413,7 +462,8 @@ function render(){
   const selA = $("#fAnio"), cur = selA.value;
   selA.innerHTML = `<option value="">Todos los años</option>` + anios.map(y => `<option ${y===cur?"selected":""}>${y}</option>`).join("");
 
-  const lista = filtradas();
+  const lista = ordenar(filtradas());
+  pintarOrden();
   const activas = lista.filter(cuenta);
   const sum = k => activas.reduce((s,v) => s + num(v[k]), 0);
   const total = sum("montoTotal");
@@ -431,6 +481,7 @@ function render(){
     <div class="mix-bar" role="img" aria-label="Ventas por proveedor">${entradas.map(([p,m]) => `<i style="width:${m/total*100}%;background:${colorDe(p)}"></i>`).join("")}</div>
     <div class="mix-legend">${entradas.map(([p,m]) => `<span><span class="dot" style="background:${colorDe(p)}"></span>${esc(p)} <b>${fmt(m)}</b></span>`).join("")}</div>` : "";
 
+  $("#sorter").hidden = !lista.length;
   $("#count").textContent = lista.length ? `${lista.length} venta${lista.length!==1?"s":""}` : "";
 
   if (!lista.length){
@@ -466,6 +517,14 @@ function render(){
   }).join("");
 }
 function fechaCorta(s){ const [y,m,d] = s.split("-"); return `${+d} ${MESES[+m-1]} ${y}`; }
+
+document.getElementById("sorter").addEventListener("click", e => {
+  const b = e.target.closest(".sort-btn"); if (!b) return;
+  const k = b.dataset.k;
+  orden = orden.k === k ? { k, dir: orden.dir === "asc" ? "desc" : "asc" } : { k, dir: DIR_INICIAL[k] };
+  try { localStorage.setItem("ventas_orden", JSON.stringify(orden)); } catch {}
+  render();
+});
 
 // ---------- Formulario ----------
 const form = $("#form"), dlg = $("#dlg");
