@@ -126,6 +126,19 @@ main{padding-top:28px;padding-bottom:60px}
 .amt{font-size:1.35rem;font-weight:700;font-variant-numeric:tabular-nums}
 .mine-com{font-size:.9rem;color:var(--ok);font-weight:600;font-variant-numeric:tabular-nums}
 .mine-com.pend{color:var(--bad)}
+.ticket .price{cursor:pointer;transition:background .15s}
+.ticket .price:hover{background:#F6F2FF}
+#dlgPagos{width:min(620px,94vw)}
+.qp-sub{color:var(--ink-soft);font-size:.92rem;margin-top:2px}
+.qp-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;background:#F4F1FB;border-radius:var(--r-md);padding:12px 14px;font-variant-numeric:tabular-nums}
+.qp-sum span{display:block;font-size:.8rem;color:var(--muted)}
+.qp-sum strong{font-size:1.05rem}
+.qp-sum .debe strong{color:var(--bad)}
+.qp-sum .debe.ok strong{color:var(--ok)}
+.qp-sum strong{white-space:nowrap}
+#qpForm .form-actions{justify-content:flex-end}
+#qpForm .form-actions > span{display:none}
+@media (max-width:560px){ .qp-sum{gap:6px;padding:10px} .qp-sum strong{font-size:.86rem} }
 .pagos-info{font-size:.78rem;color:var(--muted);margin-top:2px}
 .pagos{display:flex;flex-direction:column;gap:8px;margin-top:12px}
 .pago{display:grid;grid-template-columns:150px 130px 1fr 36px;gap:8px;align-items:center}
@@ -358,6 +371,24 @@ label textarea{min-height:74px;resize:vertical}
       <div class="actions">
         <button class="btn ghost" type="button" id="btnCancel">Cancelar</button>
         <button class="btn" type="submit" id="btnSave">Guardar venta</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+<dialog id="dlgPagos">
+  <div class="dlg-head"><div><h2>Pagos</h2><div class="qp-sub" id="qpSub"></div></div><button class="x" type="button" id="qpClose" aria-label="Cerrar">×</button></div>
+  <form id="qpForm" method="dialog" novalidate>
+    <div class="qp-sum" id="qpSum"></div>
+    <div class="pagos" id="qpPagos"></div>
+    <div class="pagos-foot">
+      <button type="button" class="add-pago" id="qpAdd">+ Agregar pago</button>
+      <span class="pagos-total" id="qpTotal"></span>
+    </div>
+    <div class="form-actions" style="margin-top:20px">
+      <span></span>
+      <div class="actions">
+        <button class="btn ghost" type="button" id="qpCancel">Cancelar</button>
+        <button class="btn" type="submit" id="qpSave">Guardar pagos</button>
       </div>
     </div>
   </form>
@@ -625,9 +656,8 @@ function abrir(v){
     form.querySelector("input[name=destino]").checked = true;
   }
   form.miPct.value = v && v.miPct ? String(v.miPct) : "";
-  if (v && Array.isArray(v.pagos)) pagosEdit = v.pagos.map(x => ({ fecha: x.fecha || "", monto: x.monto ?? "", nota: x.nota || "" }));
-  else if (v && num(v.montoCobrado) > 0) pagosEdit = [{ fecha: "", monto: num(v.montoCobrado), nota: "" }];
-  else pagosEdit = [];
+  pagosUI = UI_FORM;
+  cargarPagos(v);
   renderPagos();
   pintarPct();
   actualizarCalc();
@@ -637,8 +667,9 @@ function abrir(v){
 
 let pagosEdit = [];
 const sumaPagos = () => pagosEdit.reduce((s,x) => s + num(x.monto), 0);
+let pagosUI = { cont: "#pagos", total: "#pagosTotal", cambio(){ autoEstado(); actualizarCalc(); } };
 function renderPagos(){
-  $("#pagos").innerHTML = pagosEdit.length
+  $(pagosUI.cont).innerHTML = pagosEdit.length
     ? `<div class="pagos-head"><span>Fecha</span><span>Monto US$</span><span>Nota</span><span></span></div>` +
       pagosEdit.map((x,i) => `<div class="pago" data-i="${i}">
         <input type="date" data-f="fecha" value="${esc(x.fecha)}" aria-label="Fecha del pago">
@@ -647,32 +678,82 @@ function renderPagos(){
         <button type="button" class="del" aria-label="Borrar pago">×</button>
       </div>`).join("")
     : `<div class="pagos-empty">Todavía no hay pagos cargados.</div>`;
-  $("#pagosTotal").textContent = "Cobrado: " + fmt(sumaPagos());
+  $(pagosUI.total).textContent = "Cobrado: " + fmt(sumaPagos());
 }
 function autoEstado(){
-  const est = form.estado;
-  if (est.value === "Cancelado") return;
-  const t = num(form.montoTotal.value), c = sumaPagos();
-  if (t > 0 && c >= t) est.value = "Pagado";
-  else if (c > 0) est.value = "Seña";
-  else if (est.value === "Seña" || est.value === "Pagado") est.value = "Presupuesto";
+  form.estado.value = estadoSegun(form.estado.value, num(form.montoTotal.value), sumaPagos());
 }
-$("#pagos").addEventListener("input", e => {
-  const row = e.target.closest(".pago"); if (!row) return;
-  pagosEdit[+row.dataset.i][e.target.dataset.f] = e.target.value;
-  $("#pagosTotal").textContent = "Cobrado: " + fmt(sumaPagos());
-  if (e.target.dataset.f === "monto") { autoEstado(); actualizarCalc(); }
-});
-$("#pagos").addEventListener("click", e => {
-  const b = e.target.closest(".del"); if (!b) return;
-  pagosEdit.splice(+b.closest(".pago").dataset.i, 1);
-  renderPagos(); autoEstado(); actualizarCalc();
-});
-$("#btnAddPago").addEventListener("click", () => {
-  pagosEdit.push({ fecha: hoy(), monto: "", nota: "" });
-  renderPagos();
-  const ins = $("#pagos").querySelectorAll('input[data-f="monto"]');
-  ins[ins.length-1].focus();
+function conectarPagos(cont, btnAdd){
+  $(cont).addEventListener("input", e => {
+    const row = e.target.closest(".pago"); if (!row) return;
+    pagosEdit[+row.dataset.i][e.target.dataset.f] = e.target.value;
+    $(pagosUI.total).textContent = "Cobrado: " + fmt(sumaPagos());
+    if (e.target.dataset.f === "monto") pagosUI.cambio();
+  });
+  $(cont).addEventListener("click", e => {
+    const b = e.target.closest(".del"); if (!b) return;
+    pagosEdit.splice(+b.closest(".pago").dataset.i, 1);
+    renderPagos(); pagosUI.cambio();
+  });
+  $(btnAdd).addEventListener("click", () => {
+    pagosEdit.push({ fecha: hoy(), monto: "", nota: "" });
+    renderPagos();
+    const ins = $(cont).querySelectorAll('input[data-f="monto"]');
+    ins[ins.length-1].focus();
+  });
+}
+conectarPagos("#pagos", "#btnAddPago");
+conectarPagos("#qpPagos", "#qpAdd");
+const UI_FORM = pagosUI;
+function cargarPagos(v){
+  if (v && Array.isArray(v.pagos)) pagosEdit = v.pagos.map(x => ({ fecha: x.fecha || "", monto: x.monto ?? "", nota: x.nota || "" }));
+  else if (v && num(v.montoCobrado) > 0) pagosEdit = [{ fecha: "", monto: num(v.montoCobrado), nota: "" }];
+  else pagosEdit = [];
+}
+function pagosLimpios(){
+  if (pagosEdit.some(x => num(x.monto) <= 0 && (x.nota || "").trim())) return null;
+  return pagosEdit
+    .map(x => ({ fecha: x.fecha || "", monto: num(x.monto), nota: (x.nota || "").trim() }))
+    .filter(x => x.monto > 0)
+    .sort((a,b) => (a.fecha||"").localeCompare(b.fecha||""));
+}
+function estadoSegun(estado, total, cobrado){
+  if (estado === "Cancelado") return estado;
+  if (total > 0 && cobrado >= total) return "Pagado";
+  if (cobrado > 0) return "Seña";
+  return (estado === "Seña" || estado === "Pagado") ? "Presupuesto" : (estado || "Presupuesto");
+}
+
+// ---------- Ventanita de pagos ----------
+const dlgP = $("#dlgPagos");
+let pagosVenta = null;
+function resumenPagos(){
+  const t = num(pagosVenta.montoTotal), c = sumaPagos(), d = Math.max(t - c, 0);
+  $("#qpSum").innerHTML = `<div><span>Total</span><strong>${fmt(t)}</strong></div>
+    <div><span>Cobrado</span><strong>${fmt(c)}</strong></div>
+    <div class="debe ${d === 0 ? "ok" : ""}"><span>${d === 0 ? "Saldo" : "Debe"}</span><strong>${d === 0 ? "Sin saldo" : fmt(d)}</strong></div>`;
+}
+function abrirPagos(v){
+  pagosVenta = v;
+  pagosUI = { cont: "#qpPagos", total: "#qpTotal", cambio: resumenPagos };
+  $("#qpSub").textContent = [v.cliente, v.destino, v.numReserva && "Reserva " + v.numReserva].filter(Boolean).join(" · ");
+  cargarPagos(v);
+  renderPagos(); resumenPagos();
+  dlgP.showModal();
+}
+dlgP.addEventListener("close", () => { pagosUI = UI_FORM; pagosVenta = null; });
+$("#qpClose").addEventListener("click", () => dlgP.close());
+$("#qpCancel").addEventListener("click", () => dlgP.close());
+$("#qpForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const pagos = pagosLimpios();
+  if (!pagos) { toast("Hay un pago con nota pero sin monto"); return; }
+  const cob = pagos.reduce((s,x) => s + x.monto, 0);
+  const data = { pagos, montoCobrado: cob, estado: estadoSegun(pagosVenta.estado, num(pagosVenta.montoTotal), cob) };
+  $("#qpSave").disabled = true;
+  try { await store.update(pagosVenta.id, data); toast("Pagos guardados"); dlgP.close(); }
+  catch (err) { toast("No se pudo guardar: " + err.message); }
+  finally { $("#qpSave").disabled = false; }
 });
 
 function actualizarCalc(){
@@ -709,11 +790,8 @@ form.addEventListener("submit", async e => {
   if (!f.cliente.trim()) { form.cliente.focus(); toast("Falta el nombre del cliente"); return; }
   if (!f.fechaVenta) { form.fechaVenta.focus(); toast("Falta la fecha de venta"); return; }
   if (f.fechaDesde && f.fechaHasta && f.fechaHasta < f.fechaDesde) { form.fechaHasta.focus(); toast("El regreso es anterior a la salida"); return; }
-  const pagos = pagosEdit
-    .map(x => ({ fecha: x.fecha || "", monto: num(x.monto), nota: (x.nota || "").trim() }))
-    .filter(x => x.monto > 0)
-    .sort((a,b) => (a.fecha||"").localeCompare(b.fecha||""));
-  if (pagosEdit.some(x => num(x.monto) <= 0 && (x.nota || "").trim())) { toast("Hay un pago con nota pero sin monto"); return; }
+  const pagos = pagosLimpios();
+  if (!pagos) { toast("Hay un pago con nota pero sin monto"); return; }
   const data = {
     destino: f.destino, numReserva: (f.numReserva || "").trim(),
     cliente: f.cliente.trim(), email: f.email.trim(), telefono: f.telefono.trim(),
@@ -742,7 +820,9 @@ $("#btnClose").addEventListener("click", () => dlg.close());
 $("#btnCancel").addEventListener("click", () => dlg.close());
 $("#list").addEventListener("click", e => {
   if (e.target.closest("[data-new]")) return abrir();
-  const b = e.target.closest(".ticket"); if (b) abrir(ventas.find(v => v.id === b.dataset.id));
+  const b = e.target.closest(".ticket"); if (!b) return;
+  const v = ventas.find(x => x.id === b.dataset.id); if (!v) return;
+  if (e.target.closest(".price")) abrirPagos(v); else abrir(v);
 });
 ["#fText","#fEstado","#fAnio"].forEach(s => $(s).addEventListener("input", render));
 
