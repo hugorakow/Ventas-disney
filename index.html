@@ -86,7 +86,7 @@ main{padding-top:28px;padding-bottom:60px}
 .count{color:var(--muted);font-size:.9rem;margin:0 0 10px 4px}
 
 /* ---------- Ordenar ---------- */
-.sorter{display:grid;grid-template-columns:92px 1fr 220px;margin:0 0 8px;align-items:center}
+.sorter{display:grid;grid-template-columns:92px 1fr 260px;margin:0 0 8px;align-items:center}
 .sorter[hidden]{display:none!important}
 .sorter .lbl{display:none;color:var(--muted);font-size:.88rem;margin-right:4px}
 .sort-btn{background:none;border:0;cursor:pointer;font-weight:600;font-size:.85rem;color:var(--muted);padding:6px 18px;text-align:left;display:inline-flex;align-items:center;gap:5px;border-radius:999px;justify-self:start}
@@ -105,7 +105,7 @@ main{padding-top:28px;padding-bottom:60px}
 
 /* ---------- Ticket ---------- */
 .list{display:flex;flex-direction:column;gap:14px}
-.ticket{--c:#868E96;display:grid;grid-template-columns:92px 1fr 220px;background:var(--paper);border-radius:var(--r-lg);box-shadow:var(--shadow);cursor:pointer;text-align:left;border:0;padding:0;width:100%;overflow:visible;transition:transform .15s,box-shadow .15s}
+.ticket{--c:#868E96;display:grid;grid-template-columns:92px 1fr 260px;background:var(--paper);border-radius:var(--r-lg);box-shadow:var(--shadow);cursor:pointer;text-align:left;border:0;padding:0;width:100%;overflow:visible;transition:transform .15s,box-shadow .15s}
 .ticket:hover{transform:translateY(-2px);box-shadow:0 1px 2px rgba(34,26,69,.06),0 14px 30px -14px rgba(34,26,69,.3)}
 .ticket > div{padding:16px 18px}
 .stub{position:relative;border-radius:var(--r-lg) 0 0 var(--r-lg);background:color-mix(in srgb,var(--c) 12%,#fff);border-right:2px dashed color-mix(in srgb,var(--c) 30%,#fff);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--c)}
@@ -125,6 +125,13 @@ main{padding-top:28px;padding-bottom:60px}
 .price.notch::before,.price.notch::after{left:-10px;right:auto}
 .amt{font-size:1.35rem;font-weight:700;font-variant-numeric:tabular-nums}
 .mine-com{font-size:.9rem;color:var(--ok);font-weight:600;font-variant-numeric:tabular-nums}
+.mine-com.pend{color:var(--bad)}
+.mine-com small{display:block;font-weight:500;font-size:.78rem;opacity:.85}
+.pct-group{display:flex;flex-direction:column;gap:5px;font-size:.87rem;color:var(--ink-soft);font-weight:500}
+.pct-btns{display:flex;gap:8px}
+.pct-btn{flex:1;border:1.5px solid var(--line);background:#fff;border-radius:var(--r-sm);padding:9px 0;font-weight:700;cursor:pointer;color:var(--ink-soft)}
+.pct-btn:hover{border-color:var(--accent)}
+.pct-btn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
 .progress{height:6px;border-radius:999px;background:#EEEAF6;overflow:hidden;margin-top:4px}
 .progress i{display:block;height:100%;background:var(--ok);border-radius:999px}
 .pay span:first-child{white-space:nowrap}
@@ -160,7 +167,7 @@ legend{font-weight:700;margin-bottom:10px;font-size:1.05rem}
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
 .grid.three{grid-template-columns:repeat(3,1fr)}
 .grid .full{grid-column:1 / -1}
-@media (max-width:560px){.grid,.grid.three{grid-template-columns:1fr}}
+@media (max-width:560px){.grid,.grid.three{grid-template-columns:1fr}.pct-group{grid-column:auto!important}}
 label{display:flex;flex-direction:column;gap:5px;min-width:0;font-size:.87rem;color:var(--ink-soft);font-weight:500}
 label input,label select,label textarea{width:100%;min-width:0;border:1.5px solid var(--line);border-radius:var(--r-sm);padding:10px 12px;background:#FCFBFE;color:var(--ink);font-size:1rem;font-weight:400}
 label input:focus,label select:focus,label textarea:focus{border-color:#8C5CD6;background:#fff;outline:none}
@@ -295,6 +302,15 @@ label textarea{min-height:74px;resize:vertical}
         <label>Comisión total %<input name="comisionPct" type="number" min="0" step="0.01" inputmode="decimal"></label>
         <label>Comisión total US$<input name="comision" type="number" min="0" step="0.01" inputmode="decimal"></label>
         <label>Mi comisión US$<input name="comisionAgente" type="number" min="0" step="0.01" inputmode="decimal"></label>
+        <div class="pct-group" style="grid-column:span 2">Mi parte de la comisión total
+          <div class="pct-btns" id="pctBtns">
+            <button type="button" class="pct-btn" data-pct="50" aria-pressed="false">50%</button>
+            <button type="button" class="pct-btn" data-pct="60" aria-pressed="false">60%</button>
+            <button type="button" class="pct-btn" data-pct="70" aria-pressed="false">70%</button>
+          </div>
+          <input type="hidden" name="miPct">
+        </div>
+        <label>Cobro de mi comisión<input name="fechaCobroCom" type="date"></label>
       </div>
     </fieldset>
     <fieldset>
@@ -509,7 +525,7 @@ function render(){
       </div>
       <div class="price notch">
         <span class="amt">${fmt(t)}</span>
-        <span class="mine-com">Mi comisión ${fmt(v.comisionAgente)}</span>
+        <span class="mine-com ${v.fechaCobroCom ? "" : "pend"}">Mi comisión ${fmt(v.comisionAgente)}<small>${v.fechaCobroCom ? "Cobrada el " + fechaCorta(v.fechaCobroCom) : "Pendiente de cobro"}</small></span>
         <div class="progress" aria-hidden="true"><i style="width:${pct}%"></i></div>
         <div class="pay"><span>${v.estado==="Pagado" || saldo===0 ? "Sin saldo" : "Debe " + fmt(saldo)}</span><span class="state ${esc(v.estado)}">${esc(v.estado)}</span></div>
       </div>
@@ -550,6 +566,8 @@ function abrir(v){
     form.elements.fechaVenta.value = hoy();
     form.querySelector("input[name=destino]").checked = true;
   }
+  form.miPct.value = v && v.miPct ? String(v.miPct) : "";
+  pintarPct();
   actualizarCalc();
   dlg.showModal();
   dlg.scrollTop = 0;
@@ -565,10 +583,22 @@ function actualizarCalc(){
     <div><span>Saldo del cliente</span><strong>${fmt(Math.max(t - cob, 0))}</strong></div>
     ${warns.length ? `<div class="warn">${warns.join(" ")}</div>` : ""}`;
 }
-form.comisionPct.addEventListener("input", () => { if (form.comisionPct.value !== "") form.comision.value = +(num(form.montoTotal.value) * num(form.comisionPct.value) / 100).toFixed(2); actualizarCalc(); });
-form.comision.addEventListener("input", () => { const t = num(form.montoTotal.value); if (t) form.comisionPct.value = +(num(form.comision.value) / t * 100).toFixed(2); actualizarCalc(); });
-form.montoTotal.addEventListener("input", () => { if (form.comisionPct.value !== "") form.comision.value = +(num(form.montoTotal.value) * num(form.comisionPct.value) / 100).toFixed(2); actualizarCalc(); });
-form.comisionAgente.addEventListener("input", actualizarCalc);
+function pintarPct(){
+  const val = form.miPct.value;
+  document.querySelectorAll(".pct-btn").forEach(b => b.setAttribute("aria-pressed", b.dataset.pct === val));
+}
+function aplicarMiPct(){
+  if (form.miPct.value) form.comisionAgente.value = +(num(form.comision.value) * num(form.miPct.value) / 100).toFixed(2);
+}
+$("#pctBtns").addEventListener("click", e => {
+  const b = e.target.closest(".pct-btn"); if (!b) return;
+  form.miPct.value = form.miPct.value === b.dataset.pct ? "" : b.dataset.pct;
+  pintarPct(); aplicarMiPct(); actualizarCalc();
+});
+form.comisionPct.addEventListener("input", () => { if (form.comisionPct.value !== "") form.comision.value = +(num(form.montoTotal.value) * num(form.comisionPct.value) / 100).toFixed(2); aplicarMiPct(); actualizarCalc(); });
+form.comision.addEventListener("input", () => { const t = num(form.montoTotal.value); if (t) form.comisionPct.value = +(num(form.comision.value) / t * 100).toFixed(2); aplicarMiPct(); actualizarCalc(); });
+form.montoTotal.addEventListener("input", () => { if (form.comisionPct.value !== "") form.comision.value = +(num(form.montoTotal.value) * num(form.comisionPct.value) / 100).toFixed(2); aplicarMiPct(); actualizarCalc(); });
+form.comisionAgente.addEventListener("input", () => { form.miPct.value = ""; pintarPct(); actualizarCalc(); });
 form.montoCobrado.addEventListener("input", actualizarCalc);
 
 form.addEventListener("submit", async e => {
@@ -584,7 +614,7 @@ form.addEventListener("submit", async e => {
     fechaVenta: f.fechaVenta, fechaDesde: f.fechaDesde, fechaHasta: f.fechaHasta,
     adultos: num(f.adultos), ninos: num(f.ninos),
     parques: f.parques.trim(), tickets: f.tickets.trim(), hotel: f.hotel.trim(),
-    montoTotal: num(f.montoTotal), comisionPct: num(f.comisionPct), comision: num(f.comision), comisionAgente: num(f.comisionAgente),
+    montoTotal: num(f.montoTotal), comisionPct: num(f.comisionPct), comision: num(f.comision), comisionAgente: num(f.comisionAgente), miPct: num(f.miPct), fechaCobroCom: f.fechaCobroCom || "",
     montoCobrado: num(f.montoCobrado), estado: f.estado, vencimiento: f.vencimiento, notas: f.notas.trim()
   };
   $("#btnSave").disabled = true;
@@ -612,7 +642,7 @@ $("#list").addEventListener("click", e => {
 
 // ---------- CSV ----------
 $("#btnCsv").addEventListener("click", () => {
-  const cols = [["fechaVenta","Fecha venta"],["destino","Proveedor"],["numReserva","N° de reserva"],["cliente","Cliente"],["email","Email"],["telefono","Teléfono"],["fechaDesde","Salida"],["fechaHasta","Regreso"],["adultos","Adultos"],["ninos","Niños"],["parques","Parques / itinerario"],["tickets","Tickets / servicios"],["hotel","Hotel / barco"],["montoTotal","Monto total"],["comisionPct","Comisión total %"],["comision","Comisión total"],["comisionAgente","Mi comisión"],["parteAgencia","Parte agencia"],["montoCobrado","Cobrado"],["saldo","Saldo"],["estado","Estado"],["vencimiento","Vence saldo"],["notas","Notas"]];
+  const cols = [["fechaVenta","Fecha venta"],["destino","Proveedor"],["numReserva","N° de reserva"],["cliente","Cliente"],["email","Email"],["telefono","Teléfono"],["fechaDesde","Salida"],["fechaHasta","Regreso"],["adultos","Adultos"],["ninos","Niños"],["parques","Parques / itinerario"],["tickets","Tickets / servicios"],["hotel","Hotel / barco"],["montoTotal","Monto total"],["comisionPct","Comisión total %"],["comision","Comisión total"],["comisionAgente","Mi comisión"],["miPct","Mi %"],["fechaCobroCom","Cobro mi comisión"],["parteAgencia","Parte agencia"],["montoCobrado","Cobrado"],["saldo","Saldo"],["estado","Estado"],["vencimiento","Vence saldo"],["notas","Notas"]];
   const q = v => `"${String(v ?? "").replace(/"/g,'""')}"`;
   const filas = filtradas().map(v => ({ ...v, parteAgencia: num(v.comision) - num(v.comisionAgente), saldo: Math.max(num(v.montoTotal) - num(v.montoCobrado), 0) }));
   const csv = "\ufeff" + [cols.map(c => q(c[1])).join(";"), ...filas.map(v => cols.map(([k]) => q(v[k])).join(";"))].join("\n");
