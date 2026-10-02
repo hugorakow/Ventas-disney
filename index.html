@@ -126,6 +126,10 @@ main{padding-top:28px;padding-bottom:60px}
 .amt{font-size:1.35rem;font-weight:700;font-variant-numeric:tabular-nums}
 .mine-com{font-size:.9rem;color:var(--ok);font-weight:600;font-variant-numeric:tabular-nums}
 .mine-com.pend{color:var(--bad)}
+.due{font-size:.8rem;font-weight:600;color:var(--ink-soft);margin-top:4px}
+.due.soon{color:var(--warn)}
+.due.late{color:var(--bad)}
+.due.trip{color:var(--accent)}
 .mine-com small{display:block;font-weight:500;font-size:.78rem;opacity:.85}
 .pct-group{display:flex;flex-direction:column;gap:5px;font-size:.87rem;color:var(--ink-soft);font-weight:500}
 .pct-btns{display:flex;gap:8px}
@@ -528,9 +532,32 @@ function render(){
         <span class="mine-com ${v.fechaCobroCom ? "" : "pend"}">Mi comisión ${fmt(v.comisionAgente)}<small>${v.fechaCobroCom ? "Cobrada el " + fechaCorta(v.fechaCobroCom) : "Pendiente de cobro"}</small></span>
         <div class="progress" aria-hidden="true"><i style="width:${pct}%"></i></div>
         <div class="pay"><span>${v.estado==="Pagado" || saldo===0 ? "Sin saldo" : "Debe " + fmt(saldo)}</span><span class="state ${esc(v.estado)}">${esc(v.estado)}</span></div>
+        ${lineaPlazo(v, saldo)}
       </div>
     </button>`;
   }).join("");
+}
+function diasHasta(s){
+  const [y,m,d] = s.split("-").map(Number);
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  return Math.round((new Date(y, m-1, d) - hoy) / 86400000);
+}
+function lineaPlazo(v, saldo){
+  if (v.estado === "Cancelado") return "";
+  const pagado = v.estado === "Pagado" || (num(v.montoTotal) > 0 && saldo === 0);
+  if (!pagado) {
+    if (!v.vencimiento) return `<div class="due">Sin fecha de pago total</div>`;
+    const d = diasHasta(v.vencimiento);
+    if (d < 0) return `<div class="due late">Pago vencido: ${fechaCorta(v.vencimiento)}</div>`;
+    return `<div class="due ${d <= 7 ? "soon" : ""}">Pago total: ${fechaCorta(v.vencimiento)}</div>`;
+  }
+  if (!v.fechaDesde) return "";
+  const d = diasHasta(v.fechaDesde);
+  if (d > 1) return `<div class="due trip">Check-in en ${d} días</div>`;
+  if (d === 1) return `<div class="due trip">Mañana es el check-in</div>`;
+  if (d === 0) return `<div class="due trip">¡Hoy es el check-in!</div>`;
+  if (v.fechaHasta && diasHasta(v.fechaHasta) >= 0) return `<div class="due trip">Viaje en curso</div>`;
+  return `<div class="due">Viaje realizado</div>`;
 }
 function fechaCorta(s){ const [y,m,d] = s.split("-"); return `${+d} ${MESES[+m-1]} ${y}`; }
 
