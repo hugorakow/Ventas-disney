@@ -126,6 +126,25 @@ main{padding-top:28px;padding-bottom:60px}
 .amt{font-size:1.35rem;font-weight:700;font-variant-numeric:tabular-nums}
 .mine-com{font-size:.9rem;color:var(--ok);font-weight:600;font-variant-numeric:tabular-nums}
 .mine-com.pend{color:var(--bad)}
+.pagos-info{font-size:.78rem;color:var(--muted);margin-top:2px}
+.pagos{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.pago{display:grid;grid-template-columns:150px 130px 1fr 36px;gap:8px;align-items:center}
+.pago input{width:100%;min-width:0;border:1.5px solid var(--line);border-radius:var(--r-sm);padding:9px 10px;background:#FCFBFE;color:var(--ink);font-size:.95rem}
+.pago input:focus{border-color:#8C5CD6;background:#fff;outline:none}
+.pago .del{width:36px;height:36px;border-radius:50%;border:0;background:#F6ECEC;color:var(--bad);font-size:1.1rem;cursor:pointer}
+.pago .del:hover{background:#F1DCDC}
+.pagos-head{display:grid;grid-template-columns:150px 130px 1fr 36px;gap:8px;font-size:.8rem;color:var(--muted)}
+.pagos-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:4px}
+.add-pago{border:1.5px dashed #C9BFE3;background:#FAF8FE;color:var(--accent);border-radius:999px;padding:8px 16px;font-weight:700;cursor:pointer}
+.add-pago:hover{background:#F1ECFF}
+.pagos-total{font-weight:700;font-variant-numeric:tabular-nums}
+.pagos-empty{color:var(--muted);font-size:.9rem}
+@media (max-width:560px){
+  .pagos-head{display:none}
+  .pago{grid-template-columns:1.4fr 1fr 36px;padding:10px;border:1px solid var(--line);border-radius:var(--r-md)}
+  .pago .nota{grid-column:1 / 3;grid-row:2}
+  .pago .del{grid-row:1 / 3;grid-column:3}
+}
 .due{font-size:.8rem;font-weight:600;color:var(--ink-soft);margin-top:4px}
 .due.soon{color:var(--warn)}
 .due.late{color:var(--bad)}
@@ -319,10 +338,14 @@ label textarea{min-height:74px;resize:vertical}
     </fieldset>
     <fieldset>
       <legend>Cobro al cliente</legend>
-      <div class="grid three">
-        <label>Cobrado US$<input name="montoCobrado" type="number" min="0" step="0.01" inputmode="decimal"></label>
+      <div class="grid">
         <label>Estado<select name="estado"><option>Presupuesto</option><option>Seña</option><option>Pagado</option><option>Cancelado</option></select></label>
         <label>Vence el saldo<input name="vencimiento" type="date"></label>
+      </div>
+      <div class="pagos" id="pagos"></div>
+      <div class="pagos-foot">
+        <button type="button" class="add-pago" id="btnAddPago">+ Agregar pago</button>
+        <span class="pagos-total" id="pagosTotal"></span>
       </div>
     </fieldset>
     <div class="calc" id="calc"></div>
@@ -532,10 +555,18 @@ function render(){
         <span class="mine-com ${v.fechaCobroCom ? "" : "pend"}">Mi comisión ${fmt(v.comisionAgente)}<small>${v.fechaCobroCom ? "Cobrada el " + fechaCorta(v.fechaCobroCom) : "Pendiente de cobro"}</small></span>
         <div class="progress" aria-hidden="true"><i style="width:${pct}%"></i></div>
         <div class="pay"><span>${v.estado==="Pagado" || saldo===0 ? "Sin saldo" : "Debe " + fmt(saldo)}</span><span class="state ${esc(v.estado)}">${esc(v.estado)}</span></div>
+        ${infoPagos(v)}
         ${lineaPlazo(v, saldo)}
       </div>
     </button>`;
   }).join("");
+}
+function infoPagos(v){
+  const pg = Array.isArray(v.pagos) ? v.pagos : [];
+  if (!pg.length) return "";
+  const fechas = pg.map(x => x.fecha).filter(Boolean).sort();
+  const n = pg.length === 1 ? "1 pago" : pg.length + " pagos";
+  return `<div class="pagos-info">${n}${fechas.length ? (pg.length === 1 ? " el " : ", último ") + fechaCorta(fechas[fechas.length-1]) : ""}</div>`;
 }
 function diasHasta(s){
   const [y,m,d] = s.split("-").map(Number);
@@ -594,14 +625,58 @@ function abrir(v){
     form.querySelector("input[name=destino]").checked = true;
   }
   form.miPct.value = v && v.miPct ? String(v.miPct) : "";
+  if (v && Array.isArray(v.pagos)) pagosEdit = v.pagos.map(x => ({ fecha: x.fecha || "", monto: x.monto ?? "", nota: x.nota || "" }));
+  else if (v && num(v.montoCobrado) > 0) pagosEdit = [{ fecha: "", monto: num(v.montoCobrado), nota: "" }];
+  else pagosEdit = [];
+  renderPagos();
   pintarPct();
   actualizarCalc();
   dlg.showModal();
   dlg.scrollTop = 0;
 }
 
+let pagosEdit = [];
+const sumaPagos = () => pagosEdit.reduce((s,x) => s + num(x.monto), 0);
+function renderPagos(){
+  $("#pagos").innerHTML = pagosEdit.length
+    ? `<div class="pagos-head"><span>Fecha</span><span>Monto US$</span><span>Nota</span><span></span></div>` +
+      pagosEdit.map((x,i) => `<div class="pago" data-i="${i}">
+        <input type="date" data-f="fecha" value="${esc(x.fecha)}" aria-label="Fecha del pago">
+        <input type="number" data-f="monto" min="0" step="0.01" inputmode="decimal" placeholder="Monto" value="${x.monto === "" ? "" : esc(x.monto)}" aria-label="Monto del pago">
+        <input class="nota" type="text" data-f="nota" placeholder="Nota (opcional)" value="${esc(x.nota)}" aria-label="Nota del pago">
+        <button type="button" class="del" aria-label="Borrar pago">×</button>
+      </div>`).join("")
+    : `<div class="pagos-empty">Todavía no hay pagos cargados.</div>`;
+  $("#pagosTotal").textContent = "Cobrado: " + fmt(sumaPagos());
+}
+function autoEstado(){
+  const est = form.estado;
+  if (est.value === "Cancelado") return;
+  const t = num(form.montoTotal.value), c = sumaPagos();
+  if (t > 0 && c >= t) est.value = "Pagado";
+  else if (c > 0) est.value = "Seña";
+  else if (est.value === "Seña" || est.value === "Pagado") est.value = "Presupuesto";
+}
+$("#pagos").addEventListener("input", e => {
+  const row = e.target.closest(".pago"); if (!row) return;
+  pagosEdit[+row.dataset.i][e.target.dataset.f] = e.target.value;
+  $("#pagosTotal").textContent = "Cobrado: " + fmt(sumaPagos());
+  if (e.target.dataset.f === "monto") { autoEstado(); actualizarCalc(); }
+});
+$("#pagos").addEventListener("click", e => {
+  const b = e.target.closest(".del"); if (!b) return;
+  pagosEdit.splice(+b.closest(".pago").dataset.i, 1);
+  renderPagos(); autoEstado(); actualizarCalc();
+});
+$("#btnAddPago").addEventListener("click", () => {
+  pagosEdit.push({ fecha: hoy(), monto: "", nota: "" });
+  renderPagos();
+  const ins = $("#pagos").querySelectorAll('input[data-f="monto"]');
+  ins[ins.length-1].focus();
+});
+
 function actualizarCalc(){
-  const t = num(form.montoTotal.value), comT = num(form.comision.value), comA = num(form.comisionAgente.value), cob = num(form.montoCobrado.value);
+  const t = num(form.montoTotal.value), comT = num(form.comision.value), comA = num(form.comisionAgente.value), cob = sumaPagos();
   const warns = [];
   if (comA > comT && comT > 0) warns.push("Tu comisión es mayor que la comisión total.");
   if (t && cob > t) warns.push("Lo cobrado supera el monto total.");
@@ -624,9 +699,8 @@ $("#pctBtns").addEventListener("click", e => {
 });
 form.comisionPct.addEventListener("input", () => { if (form.comisionPct.value !== "") form.comision.value = +(num(form.montoTotal.value) * num(form.comisionPct.value) / 100).toFixed(2); aplicarMiPct(); actualizarCalc(); });
 form.comision.addEventListener("input", () => { const t = num(form.montoTotal.value); if (t) form.comisionPct.value = +(num(form.comision.value) / t * 100).toFixed(2); aplicarMiPct(); actualizarCalc(); });
-form.montoTotal.addEventListener("input", () => { if (form.comisionPct.value !== "") form.comision.value = +(num(form.montoTotal.value) * num(form.comisionPct.value) / 100).toFixed(2); aplicarMiPct(); actualizarCalc(); });
+form.montoTotal.addEventListener("input", () => { autoEstado(); if (form.comisionPct.value !== "") form.comision.value = +(num(form.montoTotal.value) * num(form.comisionPct.value) / 100).toFixed(2); aplicarMiPct(); actualizarCalc(); });
 form.comisionAgente.addEventListener("input", () => { form.miPct.value = ""; pintarPct(); actualizarCalc(); });
-form.montoCobrado.addEventListener("input", actualizarCalc);
 
 form.addEventListener("submit", async e => {
   e.preventDefault();
@@ -635,6 +709,11 @@ form.addEventListener("submit", async e => {
   if (!f.cliente.trim()) { form.cliente.focus(); toast("Falta el nombre del cliente"); return; }
   if (!f.fechaVenta) { form.fechaVenta.focus(); toast("Falta la fecha de venta"); return; }
   if (f.fechaDesde && f.fechaHasta && f.fechaHasta < f.fechaDesde) { form.fechaHasta.focus(); toast("El regreso es anterior a la salida"); return; }
+  const pagos = pagosEdit
+    .map(x => ({ fecha: x.fecha || "", monto: num(x.monto), nota: (x.nota || "").trim() }))
+    .filter(x => x.monto > 0)
+    .sort((a,b) => (a.fecha||"").localeCompare(b.fecha||""));
+  if (pagosEdit.some(x => num(x.monto) <= 0 && (x.nota || "").trim())) { toast("Hay un pago con nota pero sin monto"); return; }
   const data = {
     destino: f.destino, numReserva: (f.numReserva || "").trim(),
     cliente: f.cliente.trim(), email: f.email.trim(), telefono: f.telefono.trim(),
@@ -642,7 +721,7 @@ form.addEventListener("submit", async e => {
     adultos: num(f.adultos), ninos: num(f.ninos),
     parques: f.parques.trim(), tickets: f.tickets.trim(), hotel: f.hotel.trim(),
     montoTotal: num(f.montoTotal), comisionPct: num(f.comisionPct), comision: num(f.comision), comisionAgente: num(f.comisionAgente), miPct: num(f.miPct), fechaCobroCom: f.fechaCobroCom || "",
-    montoCobrado: num(f.montoCobrado), estado: f.estado, vencimiento: f.vencimiento, notas: f.notas.trim()
+    pagos, montoCobrado: pagos.reduce((s,x) => s + x.monto, 0), estado: f.estado, vencimiento: f.vencimiento, notas: f.notas.trim()
   };
   $("#btnSave").disabled = true;
   try {
@@ -669,9 +748,10 @@ $("#list").addEventListener("click", e => {
 
 // ---------- CSV ----------
 $("#btnCsv").addEventListener("click", () => {
-  const cols = [["fechaVenta","Fecha venta"],["destino","Proveedor"],["numReserva","N° de reserva"],["cliente","Cliente"],["email","Email"],["telefono","Teléfono"],["fechaDesde","Salida"],["fechaHasta","Regreso"],["adultos","Adultos"],["ninos","Niños"],["parques","Parques / itinerario"],["tickets","Tickets / servicios"],["hotel","Hotel / barco"],["montoTotal","Monto total"],["comisionPct","Comisión total %"],["comision","Comisión total"],["comisionAgente","Mi comisión"],["miPct","Mi %"],["fechaCobroCom","Cobro mi comisión"],["parteAgencia","Parte agencia"],["montoCobrado","Cobrado"],["saldo","Saldo"],["estado","Estado"],["vencimiento","Vence saldo"],["notas","Notas"]];
+  const cols = [["fechaVenta","Fecha venta"],["destino","Proveedor"],["numReserva","N° de reserva"],["cliente","Cliente"],["email","Email"],["telefono","Teléfono"],["fechaDesde","Salida"],["fechaHasta","Regreso"],["adultos","Adultos"],["ninos","Niños"],["parques","Parques / itinerario"],["tickets","Tickets / servicios"],["hotel","Hotel / barco"],["montoTotal","Monto total"],["comisionPct","Comisión total %"],["comision","Comisión total"],["comisionAgente","Mi comisión"],["miPct","Mi %"],["fechaCobroCom","Cobro mi comisión"],["parteAgencia","Parte agencia"],["montoCobrado","Cobrado"],["cantPagos","Cant. pagos"],["detallePagos","Detalle pagos"],["saldo","Saldo"],["estado","Estado"],["vencimiento","Vence saldo"],["notas","Notas"]];
   const q = v => `"${String(v ?? "").replace(/"/g,'""')}"`;
-  const filas = filtradas().map(v => ({ ...v, parteAgencia: num(v.comision) - num(v.comisionAgente), saldo: Math.max(num(v.montoTotal) - num(v.montoCobrado), 0) }));
+  const detalle = v => (Array.isArray(v.pagos) ? v.pagos : []).map(x => `${x.fecha ? fechaCorta(x.fecha) : "sin fecha"}: US$ ${x.monto}${x.nota ? " (" + x.nota + ")" : ""}`).join(" | ");
+  const filas = filtradas().map(v => ({ ...v, cantPagos: Array.isArray(v.pagos) ? v.pagos.length : 0, detallePagos: detalle(v), parteAgencia: num(v.comision) - num(v.comisionAgente), saldo: Math.max(num(v.montoTotal) - num(v.montoCobrado), 0) }));
   const csv = "\ufeff" + [cols.map(c => q(c[1])).join(";"), ...filas.map(v => cols.map(([k]) => q(v[k])).join(";"))].join("\n");
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([csv], { type:"text/csv;charset=utf-8" }));
