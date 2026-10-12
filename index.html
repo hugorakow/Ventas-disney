@@ -270,7 +270,6 @@ section[hidden]{display:none!important}
 /* ---------- Pestaña hoteles y tickets ---------- */
 .h-sec{font-size:1.25rem;font-weight:800;margin:22px 0 10px}
 .h-sec:first-of-type{margin-top:6px}
-.park{font-size:1rem;font-weight:700;margin:16px 0 8px;display:flex;align-items:center;gap:8px;color:var(--ink-soft)}
 .hlist{display:flex;flex-direction:column;gap:10px}
 .hcard{background:var(--paper);border-radius:var(--r-lg);box-shadow:var(--shadow);overflow:hidden}
 .hcard summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:1fr auto;gap:6px 14px;align-items:center;padding:16px 18px}
@@ -297,8 +296,6 @@ section[hidden]{display:none!important}
 .opi-top b{font-weight:700}
 .opi q{color:var(--ink-soft);font-style:italic;quotes:"“" "”"}
 .opi-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:.8rem;color:var(--muted)}
-.ig{font-size:.75rem;font-weight:700;padding:2px 8px;border-radius:999px;background:#FCE8F3;color:#B4337A}
-.ig.no{background:#EEECF4;color:var(--muted)}
 .opi-del{border:0;background:none;color:var(--bad);cursor:pointer;font-size:.8rem;text-decoration:underline;padding:0}
 .hventas{display:flex;flex-direction:column;gap:4px;font-size:.88rem;color:var(--ink-soft)}
 .hempty{color:var(--muted);font-size:.9rem}
@@ -382,7 +379,7 @@ body.modo-op{background:linear-gradient(170deg,#EDE7FB 0%,#F7F3FF 40%,#FDF1EA 10
   <div id="banner"></div>
   <nav class="tabs" role="tablist" aria-label="Secciones">
     <button class="tab" type="button" role="tab" data-tab="ventas" aria-selected="true">Ventas</button>
-    <button class="tab" type="button" role="tab" data-tab="hoteles" aria-selected="false">Hoteles y tickets</button>
+    <button class="tab" type="button" role="tab" data-tab="hoteles" aria-selected="false">Hoteles y cruceros</button>
   </nav>
   <section id="tabVentas">
   <div class="chips" id="chips" role="group" aria-label="Filtrar por proveedor"></div>
@@ -402,11 +399,8 @@ body.modo-op{background:linear-gradient(170deg,#EDE7FB 0%,#F7F3FF 40%,#FDF1EA 10
   </section>
   <section id="tabHoteles" hidden>
     <div id="opBanner"></div>
-    <input class="hsearch" id="hText" type="search" placeholder="Buscar hotel, barco, ticket o cliente…" aria-label="Buscar hoteles y tickets">
-    <h2 class="h-sec">Hoteles y cruceros</h2>
+    <input class="hsearch" id="hText" type="search" placeholder="Buscar hotel, barco o cliente…" aria-label="Buscar hoteles y cruceros">
     <div class="hlist" id="hList"></div>
-    <h2 class="h-sec">Tickets</h2>
-    <div id="tList"></div>
   </section>
 </main>
 
@@ -637,6 +631,7 @@ async function initFirebase(){
     },
     crearInvitacion: (token, data) => fs.setDoc(fs.doc(db, "invitaciones", token), { ...data, creado: fs.serverTimestamp() }),
     borrarOpinion: token => fs.deleteDoc(fs.doc(db, "opiniones", token)),
+    borrarInvitacion: token => fs.deleteDoc(fs.doc(db, "invitaciones", token)),
     add: data => fs.addDoc(col, { ...data, creado: fs.serverTimestamp() }),
     update: (id, data) => fs.updateDoc(fs.doc(db, COLECCION, id), { ...data, modificado: fs.serverTimestamp() }),
     remove: id => fs.deleteDoc(fs.doc(db, COLECCION, id))
@@ -656,7 +651,8 @@ function initLocal(){
     async remove(id){ write(read().filter(v => v.id !== id)); },
     subscribeOpiniones(cb){ opListeners.push(cb); cb(lsGet("inv_prueba"), lsGet("op_prueba")); },
     async crearInvitacion(token, data){ const a = lsGet("inv_prueba"); a.push({ ...data, id: token, creado: new Date().toISOString() }); lsSet("inv_prueba", a); avisarOp(); },
-    async borrarOpinion(token){ lsSet("op_prueba", lsGet("op_prueba").filter(x => x.id !== token)); avisarOp(); }
+    async borrarOpinion(token){ lsSet("op_prueba", lsGet("op_prueba").filter(x => x.id !== token)); avisarOp(); },
+    async borrarInvitacion(token){ lsSet("inv_prueba", lsGet("inv_prueba").filter(x => x.id !== token)); avisarOp(); }
   };
 }
 const lsGet = k => { try { return JSON.parse(localStorage.getItem(k)) || []; } catch { return []; } };
@@ -991,7 +987,13 @@ form.addEventListener("submit", async e => {
 
 $("#btnDelete").addEventListener("click", async () => {
   if (!editId || !confirm("¿Eliminar esta venta? No se puede deshacer.")) return;
-  try { await store.remove(editId); dlg.close(); toast("Venta eliminada"); }
+  try {
+    const id = editId;
+    await store.remove(id); dlg.close(); toast("Venta eliminada");
+    for (const inv of invitaciones.filter(i => i.ventaId === id)) {
+      try { if (opDe(inv.id)) await store.borrarOpinion(inv.id); await store.borrarInvitacion(inv.id); } catch {}
+    }
+  }
   catch (err) { toast("No se pudo eliminar: " + err.message); }
 });
 $("#btnNew").addEventListener("click", () => abrir());
@@ -1005,35 +1007,7 @@ $("#list").addEventListener("click", e => {
 });
 ["#fText","#fEstado","#fAnio"].forEach(s => $(s).addEventListener("input", render));
 
-// ---------- Tipos de ticket ----------
-const sinAcentos = s => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
-const TIPOS_FIJOS = {
-  "Disney": ["Sin Park Hopper", "Con Park Hopper", "Navidad", "Halloween"],
-  "Universal": ["Sin Park to Park", "Con Park to Park", "Halloween"]
-};
-const OTROS_PARQUES = [["seaworld","SeaWorld"],["sea world","SeaWorld"],["aquatica","Aquatica"],["discovery cove","Discovery Cove"],["busch gardens","Busch Gardens"],["legoland","Legoland"],["kennedy","Kennedy Space Center"],["nasa","Kennedy Space Center"],["gatorland","Gatorland"],["fun spot","Fun Spot"],["peppa","Peppa Pig Theme Park"],["icon park","ICON Park"]];
-// Devuelve [{parque, tipo}] según el texto de los tickets y el proveedor
-function tiposTicket(tickets, parques, destino){
-  const txt = sinAcentos([tickets, parques].filter(Boolean).join(" / "));
-  if (!sinAcentos(tickets) && !/ticket|entrada|dia|day|hopper|park.?to.?park|party|fiesta/.test(txt)) return [];
-  const out = [], add = (parque, tipo) => { if (!out.some(x => x.parque === parque && x.tipo === tipo)) out.push({ parque, tipo }); };
-  const esUni = /universal|park.?to.?park|epic|islands of adventure|volcano|horror|hhn/.test(txt);
-  const esDis = /disney|hopper|magic kingdom|epcot|hollywood studios|animal kingdom|not.?so.?scary|boo bash|very merry|jollywood|christmas party/.test(txt);
-  const parqueBase = esUni && !esDis ? "Universal" : esDis && !esUni ? "Disney" : (destino === "Universal" || destino === "Disney" ? destino : (esUni ? "Universal" : esDis ? "Disney" : null));
-  // fiestas especiales
-  if (/horror|hhn/.test(txt) || (parqueBase === "Universal" && /halloween/.test(txt))) add("Universal", "Halloween");
-  if (/not.?so.?scary|boo bash/.test(txt) || (parqueBase === "Disney" && /halloween/.test(txt))) add("Disney", "Halloween");
-  if (/very merry|jollywood|christmas|navidad/.test(txt)) add(parqueBase === "Universal" ? "Universal" : "Disney", "Navidad");
-  // entrada común (lo que queda al sacar las fiestas)
-  const resto = txt.replace(/halloween horror nights?|hhn|mickey'?s not.?so.?scary halloween party|not.?so.?scary[^/,+]*|boo bash|mickey'?s very merry christmas party|very merry[^/,+]*|jollywood nights?|christmas party|halloween|navidad/g, " ");
-  const hayEntrada = /ticket|entrada|dia|day|hopper|park.?to.?park|base|1.?park|parque/.test(resto);
-  if (parqueBase === "Disney" && (hayEntrada || !out.length)) add("Disney", /hopper/.test(resto) ? "Con Park Hopper" : "Sin Park Hopper");
-  if (parqueBase === "Universal" && (hayEntrada || !out.length)) add("Universal", /park.?to.?park|p2p/.test(resto) ? "Con Park to Park" : "Sin Park to Park");
-  // otros parques
-  OTROS_PARQUES.forEach(([k, nombre]) => { if (txt.includes(k)) add(nombre, "Entradas"); });
-  if (!out.length) add("Otros", (tickets || parques || "").trim() || "Sin detalle");
-  return out;
-}
+const sinAcentos = s => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
 
 // ---------- Opiniones (vista de Hugo) ----------
 let invitaciones = [], opiniones = [], opError = "";
@@ -1041,7 +1015,6 @@ const invDeVenta = id => invitaciones.filter(i => i.ventaId === id).sort((a,b) =
 const opDe = token => opiniones.find(o => o.id === token);
 const estrellas = n => { const r = Math.round(n); return `<span class="stars" aria-label="${n.toFixed(1)} de 5">${"★".repeat(r)}<span class="off">${"★".repeat(5 - r)}</span></span>`; };
 const EXP = { mejor: "Mejor de lo esperado", igual: "Lo que esperaba", peor: "Peor de lo esperado" };
-const IG = { con_nombre: "Instagram: con nombre", sin_nombre: "Instagram: sin nombre", no: "No compartir" };
 const fechaTs = c => { if (!c) return ""; const d = c.toDate ? c.toDate() : new Date(c); return isNaN(d) ? "" : fechaCorta(d.toLocaleDateString("sv-SE")); };
 const rangoViaje = (d, h) => d ? fechaCorta(d) + (h ? " al " + fechaCorta(h) : "") : "";
 
@@ -1056,21 +1029,21 @@ function bloqueOpiniones(items, campo){
       <div class="opi-top"><b>${esc(inv.cliente || "Cliente")}</b>${estrellas(num(op[campo + "Puntaje"]))}</div>
       ${op[campo + "Expect"] ? `<div class="expect"><span class="ex-${esc(op[campo + "Expect"])}">${EXP[op[campo + "Expect"]] || ""}</span></div>` : ""}
       ${op[campo + "Mejor"] ? `<q>${esc(op[campo + "Mejor"])}</q>` : ""}
-      <div class="opi-foot"><span>${campo === "ticket" ? esc(inv.tickets || inv.parques || "") + " · " : ""}${rangoViaje(inv.fechaDesde, inv.fechaHasta) || ""}${fechaTs(op.creado) ? " · respondió el " + fechaTs(op.creado) : ""}</span>
-        <span><span class="ig ${op.instagram === "no" ? "no" : ""}">${IG[op.instagram] || ""}</span> <button type="button" class="opi-del" data-del="${esc(op.id)}">Borrar</button></span></div>
+      <div class="opi-foot"><span>${rangoViaje(inv.fechaDesde, inv.fechaHasta) || ""}${fechaTs(op.creado) ? " · respondió el " + fechaTs(op.creado) : ""}</span>
+        <span><button type="button" class="opi-del" data-del="${esc(op.id)}">Borrar</button></span></div>
     </div>`).join("")}`;
 }
 function tarjeta(nombre, badge, ventasL, items, campo, abierta){
-  const ps = items.map(x => num(x.op[campo + "Puntaje"])).filter(n => n > 0);
+  const ps = campo ? items.map(x => num(x.op[campo + "Puntaje"])).filter(n => n > 0) : [];
   const prom = ps.length ? ps.reduce((a,b) => a + b, 0) / ps.length : 0;
   return `<details class="hcard" ${abierta ? "open" : ""}>
     <summary>
       <span class="hname">${esc(nombre)}${badge}</span>
       <span class="hmeta">${ventasL.length} venta${ventasL.length !== 1 ? "s" : ""}${ps.length ? ` · ${ps.length} opinión${ps.length !== 1 ? "es" : ""}` : ""}</span>
-      <span class="hscore">${ps.length ? `${estrellas(prom)}<small>${prom.toLocaleString("es-AR",{maximumFractionDigits:1})} de 5</small>` : `<span class="none">Sin opiniones</span>`}</span>
+      ${campo ? `<span class="hscore">${ps.length ? `${estrellas(prom)}<small>${prom.toLocaleString("es-AR",{maximumFractionDigits:1})} de 5</small>` : `<span class="none">Sin opiniones</span>`}</span>` : ""}
     </summary>
     <div class="hbody">
-      <div><div class="hsub">Opiniones</div>${bloqueOpiniones(items, campo)}</div>
+      ${campo ? `<div><div class="hsub">Opiniones</div>${bloqueOpiniones(items, campo)}</div>` : ""}
       <div><div class="hsub">Ventas</div><div class="hventas">${ventasL.length ? ventasL.map(v => `<span>${esc(v.cliente)}${v.fechaDesde ? " · " + rangoViaje(v.fechaDesde, v.fechaHasta) : ""} · ${esc(v.destino || "")}</span>`).join("") : `<span class="hempty">Sin ventas todavía.</span>`}</div></div>
     </div>
   </details>`;
@@ -1080,7 +1053,8 @@ function renderHoteles(){
   const q = sinAcentos($("#hText").value);
   const abiertas = new Set([...document.querySelectorAll("#tabHoteles details[open]")].map(d => d.dataset.k));
   $("#opBanner").innerHTML = opError ? `<div class="banner err">${opError}</div>` : "";
-  const pares = opiniones.map(op => ({ op, inv: invitaciones.find(i => i.id === op.id) })).filter(x => x.inv);
+  const ids = new Set(ventas.filter(v => v.estado !== "Cancelado").map(v => v.id));
+  const pares = opiniones.map(op => ({ op, inv: invitaciones.find(i => i.id === op.id) })).filter(x => x.inv && ids.has(x.inv.ventaId));
 
   // Hoteles
   const H = new Map();
@@ -1100,24 +1074,6 @@ function renderHoteles(){
     ? hoteles.map(h => tarjeta(h.nombre, `<span class="hbadge ${h.barco ? "barco" : ""}">${h.barco ? "Barco" : "Hotel"}</span>`, h.ventas, h.items, "hotel", abiertas.has("h:" + h.k)).replace("<details", `<details data-k="h:${esc(h.k)}"`)).join("")
     : `<div class="hempty">${q ? "No hay coincidencias." : "Cuando cargues hoteles o barcos en las ventas, van a aparecer acá."}</div>`;
 
-  // Tickets
-  const T = new Map(); // parque -> Map(tipo -> {ventas, items})
-  const tipoDe = (p, t) => { if (!T.has(p)) T.set(p, new Map()); const m = T.get(p); if (!m.has(t)) m.set(t, { ventas: [], items: [] }); return m.get(t); };
-  Object.entries(TIPOS_FIJOS).forEach(([p, ts]) => ts.forEach(t => tipoDe(p, t)));
-  ventas.filter(v => v.estado !== "Cancelado").forEach(v => tiposTicket(v.tickets, v.parques, v.destino).forEach(({parque, tipo}) => tipoDe(parque, tipo).ventas.push(v)));
-  pares.filter(x => num(x.op.ticketPuntaje) > 0).forEach(x => tiposTicket(x.inv.tickets, x.inv.parques, x.inv.destino).forEach(({parque, tipo}) => tipoDe(parque, tipo).items.push(x)));
-  const ordenParques = [...T.keys()].sort((a,b) => { const r = p => p === "Disney" ? 0 : p === "Universal" ? 1 : p === "Otros" ? 3 : 2; return r(a) - r(b) || a.localeCompare(b); });
-  const color = p => PROVEEDORES[p] || "#868E96";
-  const html = ordenParques.map(p => {
-    const fijos = TIPOS_FIJOS[p] || [];
-    const tipos = [...T.get(p).entries()]
-      .filter(([t, d]) => !q || sinAcentos([p, t, ...d.ventas.map(v => v.cliente + " " + v.tickets), ...d.items.map(x => x.inv.cliente)].join(" ")).includes(q))
-      .sort((a,b) => { const ia = fijos.indexOf(a[0]), ib = fijos.indexOf(b[0]); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a[0].localeCompare(b[0]); });
-    if (!tipos.length) return "";
-    return `<div class="park"><span class="dot" style="background:${color(p)}"></span>${esc(p)}</div>
-      <div class="hlist">${tipos.map(([t, d]) => tarjeta(t, "", d.ventas, d.items, "ticket", abiertas.has("t:" + p + "|" + t)).replace("<details", `<details data-k="t:${esc(p + "|" + t)}"`)).join("")}</div>`;
-  }).join("");
-  $("#tList").innerHTML = html || `<div class="hempty">No hay coincidencias.</div>`;
 }
 $("#tabHoteles").addEventListener("click", async e => {
   const b = e.target.closest("[data-del]"); if (!b) return;
@@ -1152,15 +1108,15 @@ function nuevoToken(){
 }
 function mostrarLink(inv, tel, mail){
   const url = linkDe(inv.id);
-  $("#lkSub").textContent = [inv.cliente, inv.hotel || inv.tickets].filter(Boolean).join(" · ");
+  $("#lkSub").textContent = [inv.cliente, inv.hotel].filter(Boolean).join(" · ");
   $("#lkUrl").value = url;
   const nombre = (inv.cliente || "").split(" ")[0];
-  const txt = `¡Hola${nombre ? " " + nombre : ""}! ¿Me contás cómo te fue${inv.hotel ? " en " + inv.hotel : " con los tickets"}? Es un formulario cortito, te lleva un minuto: ${url}`;
+  const txt = `¡Hola${nombre ? " " + nombre : ""}! ¿Me contás cómo te fue${inv.hotel ? " en " + inv.hotel : ""}? Es un formulario cortito, te lleva un minuto: ${url}`;
   const dig = String(tel || "").replace(/\D/g, "");
   $("#lkWa").href = `https://wa.me/${dig}?text=${encodeURIComponent(txt)}`;
   const para = String(mail || "").trim();
   const asunto = inv.hotel ? `¿Cómo te fue en ${inv.hotel}?` : "¿Cómo te fue en tu viaje?";
-  const cuerpo = `¡Hola${nombre ? " " + nombre : ""}!\n\n¿Me contás cómo te fue${inv.hotel ? " en " + inv.hotel : " con los tickets"}? Es un formulario cortito, te lleva un minuto:\n\n${url}\n\n¡Gracias!\nHugo · Pasaporte Mágico`;
+  const cuerpo = `¡Hola${nombre ? " " + nombre : ""}!\n\n¿Me contás cómo te fue${inv.hotel ? " en " + inv.hotel : ""}? Es un formulario cortito, te lleva un minuto:\n\n${url}\n\n¡Gracias!\nHugo · Pasaporte Mágico`;
   $("#lkMail").href = `mailto:${encodeURIComponent(para)}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
   $("#lkGmail").href = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(para)}&su=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
   dlgL.showModal();
@@ -1178,12 +1134,12 @@ function pintarOpinionVenta(){
   const inv = invDeVenta(editId), op = inv && opDe(inv.id);
   let html;
   if (op) {
-    const partes = [num(op.hotelPuntaje) ? "Hotel " + estrellas(num(op.hotelPuntaje)) : "", num(op.ticketPuntaje) ? "Tickets " + estrellas(num(op.ticketPuntaje)) : ""].filter(Boolean).join(" &nbsp; ");
-    html = `<span><strong>Respondida</strong>${fechaTs(op.creado) ? " el " + fechaTs(op.creado) : ""} · ${partes}</span><span style="font-size:.85rem">La ves completa en Hoteles y tickets</span>`;
+    const partes = num(op.hotelPuntaje) ? estrellas(num(op.hotelPuntaje)) : "";
+    html = `<span><strong>Respondida</strong>${fechaTs(op.creado) ? " el " + fechaTs(op.creado) : ""} · ${partes}</span><span style="font-size:.85rem">La ves completa en Hoteles y cruceros</span>`;
   } else if (inv) {
     html = `<span><strong>Pedida</strong>${fechaTs(inv.creado) ? " el " + fechaTs(inv.creado) : ""}, todavía sin respuesta.</span><button type="button" class="btn ghost sm" id="opVer">Ver link</button>`;
   } else {
-    html = `<span>Mandale un link al cliente para que califique el hotel y los tickets.</span><button type="button" class="btn sm" id="opPedir">Pedir opinión</button>`;
+    html = `<span>Mandale un link al cliente para que califique el hotel o el barco.</span><button type="button" class="btn sm" id="opPedir">Pedir opinión</button>`;
   }
   $("#opStatus").innerHTML = html;
 }
@@ -1191,7 +1147,7 @@ $("#opStatus").addEventListener("click", async e => {
   if (e.target.closest("#opVer")) { const inv = invDeVenta(editId); if (inv) mostrarLink(inv, form.telefono.value, form.email.value); return; }
   const b = e.target.closest("#opPedir"); if (!b) return;
   const hotel = form.hotel.value.trim(), tickets = form.tickets.value.trim(), parques = form.parques.value.trim();
-  if (!hotel && !tickets) { toast("Cargá el hotel o los tickets antes de pedir la opinión"); return; }
+  if (!hotel) { toast("Cargá el hotel o barco antes de pedir la opinión"); return; }
   const destino = (form.querySelector("input[name=destino]:checked") || {}).value || "";
   const token = nuevoToken();
   const data = { ventaId: editId, cliente: form.cliente.value.trim(), hotel, tickets, parques, destino,
@@ -1265,11 +1221,10 @@ async function paginaOpinion(token){
   let api, inv;
   try { api = await initPublico(); inv = await api.getInv(token); }
   catch (e) { return msg("Link no disponible", "No pudimos abrir el formulario. Probá de nuevo en un rato."); }
-  if (!inv) return msg("Link no válido", "Este link no existe o fue borrado. Pedile uno nuevo a Hugo.");
+  if (!inv || !inv.hotel) return msg("Link no válido", "Este link no existe o fue borrado. Pedile uno nuevo a Hugo.");
   const nombre = (inv.cliente || "").split(" ")[0];
   const barco = inv.destino === "Cruceros";
-  const tk = inv.tickets || (inv.hotel ? "" : inv.parques) || "";
-  const titulo = inv.hotel || tk;
+  const titulo = inv.hotel;
   const viaje = rangoViaje(inv.fechaDesde, inv.fechaHasta);
   const stars = g => `<div class="op-stars" data-g="${g}" role="radiogroup" aria-label="Puntaje">${[1,2,3,4,5].map(n => `<button type="button" data-n="${n}" role="radio" aria-checked="false" aria-label="${n} estrella${n>1?"s":""}">★</button>`).join("")}</div>`;
   const opts = (name, list) => `<div class="op-opts">${list.map(([v,t]) => `<label><input type="radio" name="${name}" value="${v}">${t}</label>`).join("")}</div>`;
@@ -1286,9 +1241,7 @@ async function paginaOpinion(token){
     <h1 class="op-hotel">${esc(titulo)}</h1>
     ${viaje ? `<p class="op-fechas">Viaje del ${esc(viaje)}</p>` : ""}
     ${inv.hotel ? bloque("hotel", barco ? "El barco" : "El hotel", barco ? "al barco" : "al hotel") : ""}
-    ${tk ? bloque("ticket", `Los tickets <span>${esc(tk)}</span>`, "a los tickets") : ""}
     <div class="op-block">
-      <div class="op-q" data-req="instagram"><p>¿Puedo compartir tu opinión en Instagram?</p>${opts("instagram", [["con_nombre","Sí, con mi nombre"],["sin_nombre","Sí, sin mi nombre"],["no","No"]])}</div>
       <button class="btn op-send" type="submit">Enviar mi opinión</button>
     </div>
   </form>`;
@@ -1304,9 +1257,7 @@ async function paginaOpinion(token){
   f.addEventListener("submit", async e => {
     e.preventDefault();
     const fd = Object.fromEntries(new FormData(f));
-    const data = { instagram: fd.instagram };
-    if (inv.hotel) Object.assign(data, { hotelPuntaje: puntajes.hotel, hotelExpect: fd.hotelExpect, hotelMejor: (fd.hotelMejor || "").trim() });
-    if (tk) Object.assign(data, { ticketPuntaje: puntajes.ticket, ticketExpect: fd.ticketExpect, ticketMejor: (fd.ticketMejor || "").trim() });
+    const data = { hotelPuntaje: puntajes.hotel, hotelExpect: fd.hotelExpect, hotelMejor: (fd.hotelMejor || "").trim() };
     let falta = null;
     f.querySelectorAll("[data-req]").forEach(q => { const ok = !!data[q.dataset.req]; q.classList.toggle("err", !ok); if (!ok && !falta) falta = q; });
     if (falta) { falta.scrollIntoView({ behavior: "smooth", block: "center" }); return; }
