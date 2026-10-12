@@ -528,6 +528,10 @@ body.modo-op{background:linear-gradient(170deg,#EDE7FB 0%,#F7F3FF 40%,#FDF1EA 10
       <button class="btn ghost" type="button" id="lkOk">Cerrar</button>
       <a class="btn wa" id="lkWa" target="_blank" rel="noopener" style="text-decoration:none">Enviar por WhatsApp</a>
     </div>
+    <div class="actions" style="justify-content:flex-end;margin-top:10px">
+      <a class="btn ghost" id="lkMail" style="text-decoration:none">Enviar por mail</a>
+      <a class="btn ghost" id="lkGmail" target="_blank" rel="noopener" style="text-decoration:none">Abrir en Gmail</a>
+    </div>
   </div>
 </dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -1146,7 +1150,7 @@ function nuevoToken(){
   const abc = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789", r = crypto.getRandomValues(new Uint8Array(22));
   return [...r].map(x => abc[x % abc.length]).join("");
 }
-function mostrarLink(inv, tel){
+function mostrarLink(inv, tel, mail){
   const url = linkDe(inv.id);
   $("#lkSub").textContent = [inv.cliente, inv.hotel || inv.tickets].filter(Boolean).join(" · ");
   $("#lkUrl").value = url;
@@ -1154,6 +1158,11 @@ function mostrarLink(inv, tel){
   const txt = `¡Hola${nombre ? " " + nombre : ""}! ¿Me contás cómo te fue${inv.hotel ? " en " + inv.hotel : " con los tickets"}? Es un formulario cortito, te lleva un minuto: ${url}`;
   const dig = String(tel || "").replace(/\D/g, "");
   $("#lkWa").href = `https://wa.me/${dig}?text=${encodeURIComponent(txt)}`;
+  const para = String(mail || "").trim();
+  const asunto = inv.hotel ? `¿Cómo te fue en ${inv.hotel}?` : "¿Cómo te fue en tu viaje?";
+  const cuerpo = `¡Hola${nombre ? " " + nombre : ""}!\n\n¿Me contás cómo te fue${inv.hotel ? " en " + inv.hotel : " con los tickets"}? Es un formulario cortito, te lleva un minuto:\n\n${url}\n\n¡Gracias!\nHugo · Pasaporte Mágico`;
+  $("#lkMail").href = `mailto:${encodeURIComponent(para)}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
+  $("#lkGmail").href = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(para)}&su=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
   dlgL.showModal();
 }
 $("#lkClose").addEventListener("click", () => dlgL.close());
@@ -1179,7 +1188,7 @@ function pintarOpinionVenta(){
   $("#opStatus").innerHTML = html;
 }
 $("#opStatus").addEventListener("click", async e => {
-  if (e.target.closest("#opVer")) { const inv = invDeVenta(editId); if (inv) mostrarLink(inv, form.telefono.value); return; }
+  if (e.target.closest("#opVer")) { const inv = invDeVenta(editId); if (inv) mostrarLink(inv, form.telefono.value, form.email.value); return; }
   const b = e.target.closest("#opPedir"); if (!b) return;
   const hotel = form.hotel.value.trim(), tickets = form.tickets.value.trim(), parques = form.parques.value.trim();
   if (!hotel && !tickets) { toast("Cargá el hotel o los tickets antes de pedir la opinión"); return; }
@@ -1190,7 +1199,7 @@ $("#opStatus").addEventListener("click", async e => {
   b.disabled = true;
   try {
     await store.crearInvitacion(token, data);
-    mostrarLink({ id: token, ...data }, form.telefono.value);
+    mostrarLink({ id: token, ...data }, form.telefono.value, form.email.value);
     pintarOpinionVenta();
   } catch (err) {
     b.disabled = false;
