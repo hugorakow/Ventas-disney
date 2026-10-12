@@ -240,6 +240,103 @@ label textarea{min-height:74px;resize:vertical}
 .user{display:flex;align-items:center;gap:8px;font-size:.85rem;color:rgba(255,255,255,.75);margin-top:10px}
 .user button{background:none;border:0;color:#fff;text-decoration:underline;cursor:pointer;padding:0;font-size:.85rem}
 .user[hidden]{display:none}
+/* ---------- Pestañas ---------- */
+.tabs{display:flex;gap:6px;background:#E9E5F5;border-radius:999px;padding:4px;width:max-content;max-width:100%;margin:0 0 16px}
+.tab{border:0;background:transparent;border-radius:999px;padding:9px 18px;font-weight:700;color:var(--ink-soft);cursor:pointer;white-space:nowrap}
+.tab[aria-selected="true"]{background:var(--paper);color:var(--ink);box-shadow:0 1px 3px rgba(34,26,69,.15)}
+section[hidden]{display:none!important}
+
+/* ---------- Autocompletar cliente ---------- */
+.cli-wrap{position:relative}
+.sug{position:absolute;left:0;right:0;top:100%;margin-top:4px;z-index:5;background:#fff;border:1.5px solid var(--line);border-radius:var(--r-md);box-shadow:0 14px 30px -12px rgba(34,26,69,.35);overflow:hidden}
+.sug[hidden]{display:none}
+.sug button{display:block;width:100%;text-align:left;border:0;background:#fff;padding:10px 14px;cursor:pointer;border-bottom:1px solid #F1EEF8}
+.sug button:last-child{border-bottom:0}
+.sug button:hover,.sug button.on{background:#F4F0FF}
+.sug b{display:block;font-weight:700;color:var(--ink)}
+.sug small{color:var(--muted);font-size:.8rem}
+
+/* ---------- Opinión en el formulario ---------- */
+.op-status{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:#F8F6FD;border:1px solid var(--line);border-radius:var(--r-md);padding:12px 14px;font-size:.92rem;color:var(--ink-soft)}
+.op-status strong{color:var(--ink)}
+.btn.sm{padding:8px 16px;font-size:.9rem}
+.link-box{display:flex;gap:8px;margin:14px 0}
+.link-box input{flex:1;min-width:0;border:1.5px solid var(--line);border-radius:var(--r-sm);padding:10px 12px;background:#FCFBFE;font-size:.9rem}
+#dlgLink{width:min(520px,94vw)}
+#dlgLink .inner{padding:18px 26px 22px}
+.wa{background:#1F9D55}
+.wa:hover{background:#178246}
+
+/* ---------- Pestaña hoteles y tickets ---------- */
+.h-sec{font-size:1.25rem;font-weight:800;margin:22px 0 10px}
+.h-sec:first-of-type{margin-top:6px}
+.park{font-size:1rem;font-weight:700;margin:16px 0 8px;display:flex;align-items:center;gap:8px;color:var(--ink-soft)}
+.hlist{display:flex;flex-direction:column;gap:10px}
+.hcard{background:var(--paper);border-radius:var(--r-lg);box-shadow:var(--shadow);overflow:hidden}
+.hcard summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:1fr auto;gap:6px 14px;align-items:center;padding:16px 18px}
+.hcard summary::-webkit-details-marker{display:none}
+.hcard summary:hover{background:#FBFAFE}
+.hname{font-weight:700;font-size:1.05rem;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.hbadge{font-size:.72rem;font-weight:700;padding:2px 9px;border-radius:999px;background:#EEF0FF;color:#3B5BDB}
+.hbadge.barco{background:#E3F6F8;color:#0C8599}
+.hmeta{color:var(--muted);font-size:.85rem;grid-column:1}
+.hscore{grid-row:1 / 3;grid-column:2;text-align:right;font-variant-numeric:tabular-nums}
+.stars{color:#F2A900;letter-spacing:1px;font-size:1.05rem;white-space:nowrap}
+.stars .off{color:#DDD8EA}
+.hscore small{display:block;color:var(--muted);font-size:.8rem}
+.hscore .none{color:var(--muted);font-size:.85rem}
+.hbody{border-top:1px solid var(--line);padding:14px 18px 18px;display:flex;flex-direction:column;gap:14px}
+.expect{display:flex;gap:6px;flex-wrap:wrap}
+.expect span{font-size:.8rem;font-weight:600;padding:4px 10px;border-radius:999px}
+.ex-mejor{background:#DFF3E7;color:var(--ok)}
+.ex-igual{background:#EEECF4;color:var(--ink-soft)}
+.ex-peor{background:#F9E1E1;color:var(--bad)}
+.hsub{font-size:.8rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+.opi{border:1px solid var(--line);border-radius:var(--r-md);padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.opi-top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.opi-top b{font-weight:700}
+.opi q{color:var(--ink-soft);font-style:italic;quotes:"“" "”"}
+.opi-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:.8rem;color:var(--muted)}
+.ig{font-size:.75rem;font-weight:700;padding:2px 8px;border-radius:999px;background:#FCE8F3;color:#B4337A}
+.ig.no{background:#EEECF4;color:var(--muted)}
+.opi-del{border:0;background:none;color:var(--bad);cursor:pointer;font-size:.8rem;text-decoration:underline;padding:0}
+.hventas{display:flex;flex-direction:column;gap:4px;font-size:.88rem;color:var(--ink-soft)}
+.hempty{color:var(--muted);font-size:.9rem}
+.hsearch{width:100%;border:1.5px solid var(--line);border-radius:999px;padding:11px 18px;background:var(--paper);margin-bottom:6px}
+
+/* ---------- Página de opinión del cliente ---------- */
+.op-page{display:none}
+body.modo-op .hero, body.modo-op main, body.modo-op .gate, body.modo-op dialog{display:none!important}
+body.modo-op .op-page{display:block}
+body.modo-op{background:linear-gradient(170deg,#EDE7FB 0%,#F7F3FF 40%,#FDF1EA 100%);min-height:100vh}
+.op-wrap{max-width:560px;margin:0 auto;padding:calc(20px + env(safe-area-inset-top,0px)) 16px 40px}
+.op-logo{display:block;width:150px;max-width:50%;margin:4px auto 16px;border-radius:16px}
+.op-card{background:#fff;border-radius:26px;box-shadow:0 20px 50px -24px rgba(40,24,100,.45);padding:24px 22px}
+.op-hola{color:var(--ink-soft);margin:0 0 4px}
+.op-sobre{font-size:.9rem;font-weight:700;color:#7A3A94;text-transform:uppercase;letter-spacing:.05em;margin:0}
+.op-hotel{font-size:clamp(1.6rem,6.5vw,2.1rem);font-weight:800;line-height:1.1;margin:4px 0 6px;letter-spacing:-.01em;color:var(--ink)}
+.op-fechas{color:var(--muted);font-size:.92rem;margin:0}
+.op-block{margin-top:22px;padding-top:20px;border-top:1px dashed var(--line)}
+.op-block h3{margin:0 0 14px;font-size:1.15rem;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.op-block h3 span{font-weight:500;color:var(--ink-soft);font-size:.98rem}
+.op-q{margin:0 0 18px}
+.op-q > p{margin:0 0 8px;font-weight:600}
+.op-q > p small{font-weight:400;color:var(--muted)}
+.op-stars{display:flex;gap:4px}
+.op-stars button{border:0;background:none;font-size:2.4rem;line-height:1;cursor:pointer;color:#DDD8EA;padding:2px;transition:transform .1s}
+.op-stars button.on{color:#F2A900}
+.op-stars button:active{transform:scale(.9)}
+.op-opts{display:flex;flex-direction:column;gap:8px}
+.op-opts label{flex-direction:row;align-items:center;gap:10px;border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;font-size:1rem;color:var(--ink);cursor:pointer}
+.op-opts label:has(input:checked){border-color:#7A3A94;background:#F6EEFB;font-weight:700}
+.op-opts input{accent-color:#7A3A94;width:18px;height:18px;margin:0}
+.op-q textarea{width:100%;min-height:90px;border:1.5px solid var(--line);border-radius:14px;padding:12px;font-size:1rem;resize:vertical;background:#FCFBFE}
+.op-q.err > p{color:var(--bad)}
+.op-send{width:100%;margin-top:8px;padding:15px;font-size:1.08rem;background:linear-gradient(135deg,#5B2C8F,#9A3F8E)}
+.op-msg{text-align:center;padding:10px 0}
+.op-msg h2{margin:6px 0 8px;font-size:1.6rem}
+.op-msg p{color:var(--ink-soft);line-height:1.5;margin:0}
+.op-firma{text-align:center;color:var(--muted);font-size:.85rem;margin-top:18px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -283,6 +380,11 @@ label textarea{min-height:74px;resize:vertical}
 
 <main class="wrap">
   <div id="banner"></div>
+  <nav class="tabs" role="tablist" aria-label="Secciones">
+    <button class="tab" type="button" role="tab" data-tab="ventas" aria-selected="true">Ventas</button>
+    <button class="tab" type="button" role="tab" data-tab="hoteles" aria-selected="false">Hoteles y tickets</button>
+  </nav>
+  <section id="tabVentas">
   <div class="chips" id="chips" role="group" aria-label="Filtrar por proveedor"></div>
   <div class="filters">
     <input id="fText" type="search" placeholder="Buscar cliente, reserva, hotel, barco…" aria-label="Buscar">
@@ -297,7 +399,24 @@ label textarea{min-height:74px;resize:vertical}
     <button type="button" class="sort-btn" data-k="monto">Monto <span class="arr"></span></button>
   </div>
   <div class="list" id="list"></div>
+  </section>
+  <section id="tabHoteles" hidden>
+    <div id="opBanner"></div>
+    <input class="hsearch" id="hText" type="search" placeholder="Buscar hotel, barco, ticket o cliente…" aria-label="Buscar hoteles y tickets">
+    <h2 class="h-sec">Hoteles y cruceros</h2>
+    <div class="hlist" id="hList"></div>
+    <h2 class="h-sec">Tickets</h2>
+    <div id="tList"></div>
+  </section>
 </main>
+
+<section class="op-page" id="opPage">
+  <div class="op-wrap">
+    <img class="op-logo" src="data:image/webp;base64,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" alt="Pasaporte Mágico">
+    <div class="op-card" id="opCard"><div class="op-msg"><p>Cargando…</p></div></div>
+    <p class="op-firma">Hugo · Pasaporte Mágico</p>
+  </div>
+</section>
 
 <dialog id="dlg">
   <div class="dlg-head"><h2 id="dlgTitle">Nueva venta</h2><button class="x" type="button" id="btnClose" aria-label="Cerrar">×</button></div>
@@ -312,7 +431,10 @@ label textarea{min-height:74px;resize:vertical}
     <fieldset>
       <legend>Cliente</legend>
       <div class="grid">
-        <label class="full">Nombre y apellido<input name="cliente" required autocomplete="off"></label>
+        <div class="full cli-wrap">
+          <label>Nombre y apellido<input name="cliente" required autocomplete="off" role="combobox" aria-autocomplete="list" aria-controls="sugCli" aria-expanded="false"></label>
+          <div class="sug" id="sugCli" role="listbox" hidden></div>
+        </div>
         <label>Email<input name="email" type="email" autocomplete="off"></label>
         <label>Teléfono / WhatsApp<input name="telefono" type="tel" autocomplete="off"></label>
       </div>
@@ -365,6 +487,10 @@ label textarea{min-height:74px;resize:vertical}
     <fieldset style="margin-top:18px">
       <label>Notas<textarea name="notas"></textarea></label>
     </fieldset>
+    <fieldset id="opBox" hidden>
+      <legend>Opinión del cliente</legend>
+      <div class="op-status" id="opStatus"></div>
+    </fieldset>
     <div class="form-actions">
       <button class="btn danger" type="button" id="btnDelete" hidden>Eliminar venta</button>
       <span></span>
@@ -392,6 +518,17 @@ label textarea{min-height:74px;resize:vertical}
       </div>
     </div>
   </form>
+</dialog>
+<dialog id="dlgLink">
+  <div class="dlg-head"><div><h2>Link de opinión</h2><div class="qp-sub" id="lkSub"></div></div><button class="x" type="button" id="lkClose" aria-label="Cerrar">×</button></div>
+  <div class="inner">
+    <p style="margin:0;color:var(--ink-soft);font-size:.92rem">Mandale este link al cliente. Sirve una sola vez y no le muestra nada de tu app.</p>
+    <div class="link-box"><input id="lkUrl" readonly aria-label="Link"><button class="btn sm" type="button" id="lkCopy">Copiar</button></div>
+    <div class="actions" style="justify-content:flex-end">
+      <button class="btn ghost" type="button" id="lkOk">Cerrar</button>
+      <a class="btn wa" id="lkWa" target="_blank" rel="noopener" style="text-decoration:none">Enviar por WhatsApp</a>
+    </div>
+  </div>
 </dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -465,7 +602,7 @@ async function initFirebase(){
   const db = fs.getFirestore(app);
   const auth = au.getAuth(app);
   const col = fs.collection(db, COLECCION);
-  let unsub = null;
+  let unsub = null, unsubOp = [];
   return {
     auth: {
       onChange: cb => au.onAuthStateChanged(auth, cb),
@@ -486,7 +623,16 @@ async function initFirebase(){
         snap => { banner(""); cb(snap.docs.map(d => ({ id:d.id, ...d.data() }))); },
         e => onError(e));
     },
-    stop(){ if (unsub) { unsub(); unsub = null; } },
+    stop(){ if (unsub) { unsub(); unsub = null; } unsubOp.forEach(f => f()); unsubOp = []; },
+    subscribeOpiniones(cb, onError){
+      unsubOp.forEach(f => f()); unsubOp = [];
+      let inv = [], op = [];
+      const fin = () => cb(inv, op);
+      unsubOp.push(fs.onSnapshot(fs.collection(db, "invitaciones"), s2 => { inv = s2.docs.map(d => ({ id:d.id, ...d.data() })); fin(); }, onError));
+      unsubOp.push(fs.onSnapshot(fs.collection(db, "opiniones"), s2 => { op = s2.docs.map(d => ({ id:d.id, ...d.data() })); fin(); }, onError));
+    },
+    crearInvitacion: (token, data) => fs.setDoc(fs.doc(db, "invitaciones", token), { ...data, creado: fs.serverTimestamp() }),
+    borrarOpinion: token => fs.deleteDoc(fs.doc(db, "opiniones", token)),
     add: data => fs.addDoc(col, { ...data, creado: fs.serverTimestamp() }),
     update: (id, data) => fs.updateDoc(fs.doc(db, COLECCION, id), { ...data, modificado: fs.serverTimestamp() }),
     remove: id => fs.deleteDoc(fs.doc(db, COLECCION, id))
@@ -503,7 +649,33 @@ function initLocal(){
     subscribe(cb){ listeners.push(cb); cb(sorted()); },
     async add(data){ const arr = read(); arr.push({ ...data, id: crypto.randomUUID() }); write(arr); },
     async update(id, data){ write(read().map(v => v.id === id ? { ...v, ...data } : v)); },
-    async remove(id){ write(read().filter(v => v.id !== id)); }
+    async remove(id){ write(read().filter(v => v.id !== id)); },
+    subscribeOpiniones(cb){ opListeners.push(cb); cb(lsGet("inv_prueba"), lsGet("op_prueba")); },
+    async crearInvitacion(token, data){ const a = lsGet("inv_prueba"); a.push({ ...data, id: token, creado: new Date().toISOString() }); lsSet("inv_prueba", a); avisarOp(); },
+    async borrarOpinion(token){ lsSet("op_prueba", lsGet("op_prueba").filter(x => x.id !== token)); avisarOp(); }
+  };
+}
+const lsGet = k => { try { return JSON.parse(localStorage.getItem(k)) || []; } catch { return []; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+const opListeners = [];
+const avisarOp = () => opListeners.forEach(cb => cb(lsGet("inv_prueba"), lsGet("op_prueba")));
+
+// ---------- Acceso público (formulario del cliente) ----------
+async function initPublico(){
+  if (!configurado) return {
+    async getInv(t){ return lsGet("inv_prueba").find(x => x.id === t) || null; },
+    async enviar(t, data){
+      const op = lsGet("op_prueba");
+      if (op.some(x => x.id === t)) { const e = new Error("ya enviada"); e.code = "permission-denied"; throw e; }
+      op.push({ ...data, id: t, creado: new Date().toISOString() }); lsSet("op_prueba", op);
+    }
+  };
+  const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+  const fs = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+  const db = fs.getFirestore(initializeApp(firebaseConfig));
+  return {
+    async getInv(t){ const d = await fs.getDoc(fs.doc(db, "invitaciones", t)); return d.exists() ? { id: d.id, ...d.data() } : null; },
+    enviar: (t, data) => fs.setDoc(fs.doc(db, "opiniones", t), { ...data, creado: fs.serverTimestamp() })
   };
 }
 
@@ -555,6 +727,7 @@ function render(){
     <div class="mix-bar" role="img" aria-label="Ventas por proveedor">${entradas.map(([p,m]) => `<i style="width:${m/total*100}%;background:${colorDe(p)}"></i>`).join("")}</div>
     <div class="mix-legend">${entradas.map(([p,m]) => `<span><span class="dot" style="background:${colorDe(p)}"></span>${esc(p)} <b>${fmt(m)}</b></span>`).join("")}</div>` : "";
 
+  renderHoteles();
   $("#sorter").hidden = !lista.length;
   $("#count").textContent = lista.length ? `${lista.length} venta${lista.length!==1?"s":""}` : "";
 
@@ -656,6 +829,8 @@ function abrir(v){
     form.querySelector("input[name=destino]").checked = true;
   }
   form.miPct.value = v && v.miPct ? String(v.miPct) : "";
+  cerrarSug();
+  pintarOpinionVenta();
   pagosUI = UI_FORM;
   cargarPagos(v);
   renderPagos();
@@ -826,6 +1001,317 @@ $("#list").addEventListener("click", e => {
 });
 ["#fText","#fEstado","#fAnio"].forEach(s => $(s).addEventListener("input", render));
 
+// ---------- Tipos de ticket ----------
+const sinAcentos = s => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
+const TIPOS_FIJOS = {
+  "Disney": ["Sin Park Hopper", "Con Park Hopper", "Navidad", "Halloween"],
+  "Universal": ["Sin Park to Park", "Con Park to Park", "Halloween"]
+};
+const OTROS_PARQUES = [["seaworld","SeaWorld"],["sea world","SeaWorld"],["aquatica","Aquatica"],["discovery cove","Discovery Cove"],["busch gardens","Busch Gardens"],["legoland","Legoland"],["kennedy","Kennedy Space Center"],["nasa","Kennedy Space Center"],["gatorland","Gatorland"],["fun spot","Fun Spot"],["peppa","Peppa Pig Theme Park"],["icon park","ICON Park"]];
+// Devuelve [{parque, tipo}] según el texto de los tickets y el proveedor
+function tiposTicket(tickets, parques, destino){
+  const txt = sinAcentos([tickets, parques].filter(Boolean).join(" / "));
+  if (!sinAcentos(tickets) && !/ticket|entrada|dia|day|hopper|park.?to.?park|party|fiesta/.test(txt)) return [];
+  const out = [], add = (parque, tipo) => { if (!out.some(x => x.parque === parque && x.tipo === tipo)) out.push({ parque, tipo }); };
+  const esUni = /universal|park.?to.?park|epic|islands of adventure|volcano|horror|hhn/.test(txt);
+  const esDis = /disney|hopper|magic kingdom|epcot|hollywood studios|animal kingdom|not.?so.?scary|boo bash|very merry|jollywood|christmas party/.test(txt);
+  const parqueBase = esUni && !esDis ? "Universal" : esDis && !esUni ? "Disney" : (destino === "Universal" || destino === "Disney" ? destino : (esUni ? "Universal" : esDis ? "Disney" : null));
+  // fiestas especiales
+  if (/horror|hhn/.test(txt) || (parqueBase === "Universal" && /halloween/.test(txt))) add("Universal", "Halloween");
+  if (/not.?so.?scary|boo bash/.test(txt) || (parqueBase === "Disney" && /halloween/.test(txt))) add("Disney", "Halloween");
+  if (/very merry|jollywood|christmas|navidad/.test(txt)) add(parqueBase === "Universal" ? "Universal" : "Disney", "Navidad");
+  // entrada común (lo que queda al sacar las fiestas)
+  const resto = txt.replace(/halloween horror nights?|hhn|mickey'?s not.?so.?scary halloween party|not.?so.?scary[^/,+]*|boo bash|mickey'?s very merry christmas party|very merry[^/,+]*|jollywood nights?|christmas party|halloween|navidad/g, " ");
+  const hayEntrada = /ticket|entrada|dia|day|hopper|park.?to.?park|base|1.?park|parque/.test(resto);
+  if (parqueBase === "Disney" && (hayEntrada || !out.length)) add("Disney", /hopper/.test(resto) ? "Con Park Hopper" : "Sin Park Hopper");
+  if (parqueBase === "Universal" && (hayEntrada || !out.length)) add("Universal", /park.?to.?park|p2p/.test(resto) ? "Con Park to Park" : "Sin Park to Park");
+  // otros parques
+  OTROS_PARQUES.forEach(([k, nombre]) => { if (txt.includes(k)) add(nombre, "Entradas"); });
+  if (!out.length) add("Otros", (tickets || parques || "").trim() || "Sin detalle");
+  return out;
+}
+
+// ---------- Opiniones (vista de Hugo) ----------
+let invitaciones = [], opiniones = [], opError = "";
+const invDeVenta = id => invitaciones.filter(i => i.ventaId === id).sort((a,b) => String(b.creadoTxt||"").localeCompare(String(a.creadoTxt||"")))[0];
+const opDe = token => opiniones.find(o => o.id === token);
+const estrellas = n => { const r = Math.round(n); return `<span class="stars" aria-label="${n.toFixed(1)} de 5">${"★".repeat(r)}<span class="off">${"★".repeat(5 - r)}</span></span>`; };
+const EXP = { mejor: "Mejor de lo esperado", igual: "Lo que esperaba", peor: "Peor de lo esperado" };
+const IG = { con_nombre: "Instagram: con nombre", sin_nombre: "Instagram: sin nombre", no: "No compartir" };
+const fechaTs = c => { if (!c) return ""; const d = c.toDate ? c.toDate() : new Date(c); return isNaN(d) ? "" : fechaCorta(d.toLocaleDateString("sv-SE")); };
+const rangoViaje = (d, h) => d ? fechaCorta(d) + (h ? " al " + fechaCorta(h) : "") : "";
+
+function bloqueOpiniones(items, campo){
+  // items: [{op, inv}]
+  const conP = items.filter(x => num(x.op[campo + "Puntaje"]) > 0);
+  if (!conP.length) return `<div class="hempty">Todavía no hay opiniones.</div>`;
+  const cnt = { mejor:0, igual:0, peor:0 };
+  conP.forEach(x => { const e = x.op[campo + "Expect"]; if (cnt[e] !== undefined) cnt[e]++; });
+  return `<div class="expect">${Object.entries(cnt).filter(([,n]) => n).map(([k,n]) => `<span class="ex-${k}">${EXP[k]}: ${n}</span>`).join("")}</div>
+    ${conP.map(({op, inv}) => `<div class="opi">
+      <div class="opi-top"><b>${esc(inv.cliente || "Cliente")}</b>${estrellas(num(op[campo + "Puntaje"]))}</div>
+      ${op[campo + "Expect"] ? `<div class="expect"><span class="ex-${esc(op[campo + "Expect"])}">${EXP[op[campo + "Expect"]] || ""}</span></div>` : ""}
+      ${op[campo + "Mejor"] ? `<q>${esc(op[campo + "Mejor"])}</q>` : ""}
+      <div class="opi-foot"><span>${campo === "ticket" ? esc(inv.tickets || inv.parques || "") + " · " : ""}${rangoViaje(inv.fechaDesde, inv.fechaHasta) || ""}${fechaTs(op.creado) ? " · respondió el " + fechaTs(op.creado) : ""}</span>
+        <span><span class="ig ${op.instagram === "no" ? "no" : ""}">${IG[op.instagram] || ""}</span> <button type="button" class="opi-del" data-del="${esc(op.id)}">Borrar</button></span></div>
+    </div>`).join("")}`;
+}
+function tarjeta(nombre, badge, ventasL, items, campo, abierta){
+  const ps = items.map(x => num(x.op[campo + "Puntaje"])).filter(n => n > 0);
+  const prom = ps.length ? ps.reduce((a,b) => a + b, 0) / ps.length : 0;
+  return `<details class="hcard" ${abierta ? "open" : ""}>
+    <summary>
+      <span class="hname">${esc(nombre)}${badge}</span>
+      <span class="hmeta">${ventasL.length} venta${ventasL.length !== 1 ? "s" : ""}${ps.length ? ` · ${ps.length} opinión${ps.length !== 1 ? "es" : ""}` : ""}</span>
+      <span class="hscore">${ps.length ? `${estrellas(prom)}<small>${prom.toLocaleString("es-AR",{maximumFractionDigits:1})} de 5</small>` : `<span class="none">Sin opiniones</span>`}</span>
+    </summary>
+    <div class="hbody">
+      <div><div class="hsub">Opiniones</div>${bloqueOpiniones(items, campo)}</div>
+      <div><div class="hsub">Ventas</div><div class="hventas">${ventasL.length ? ventasL.map(v => `<span>${esc(v.cliente)}${v.fechaDesde ? " · " + rangoViaje(v.fechaDesde, v.fechaHasta) : ""} · ${esc(v.destino || "")}</span>`).join("") : `<span class="hempty">Sin ventas todavía.</span>`}</div></div>
+    </div>
+  </details>`;
+}
+function renderHoteles(){
+  if ($("#tabHoteles").hidden) return;
+  const q = sinAcentos($("#hText").value);
+  const abiertas = new Set([...document.querySelectorAll("#tabHoteles details[open]")].map(d => d.dataset.k));
+  $("#opBanner").innerHTML = opError ? `<div class="banner err">${opError}</div>` : "";
+  const pares = opiniones.map(op => ({ op, inv: invitaciones.find(i => i.id === op.id) })).filter(x => x.inv);
+
+  // Hoteles
+  const H = new Map();
+  const hotelDe = k => { if (!H.has(k)) H.set(k, { nombres: {}, ventas: [], items: [], barco: false }); return H.get(k); };
+  ventas.filter(v => v.estado !== "Cancelado" && sinAcentos(v.hotel)).forEach(v => {
+    const h = hotelDe(sinAcentos(v.hotel)); h.ventas.push(v); h.nombres[v.hotel.trim()] = (h.nombres[v.hotel.trim()] || 0) + 1;
+    if (v.destino === "Cruceros") h.barco = true;
+  });
+  pares.filter(x => sinAcentos(x.inv.hotel) && num(x.op.hotelPuntaje) > 0).forEach(x => {
+    const h = hotelDe(sinAcentos(x.inv.hotel)); h.items.push(x); h.nombres[x.inv.hotel.trim()] = (h.nombres[x.inv.hotel.trim()] || 0);
+    if (x.inv.destino === "Cruceros") h.barco = true;
+  });
+  const hoteles = [...H.entries()].map(([k, h]) => ({ k, ...h, nombre: Object.entries(h.nombres).sort((a,b) => b[1]-a[1])[0][0] }))
+    .filter(h => !q || sinAcentos([h.nombre, ...h.ventas.map(v => v.cliente), ...h.items.map(x => x.inv.cliente)].join(" ")).includes(q))
+    .sort((a,b) => a.nombre.localeCompare(b.nombre, "es", { sensitivity:"base" }));
+  $("#hList").innerHTML = hoteles.length
+    ? hoteles.map(h => tarjeta(h.nombre, `<span class="hbadge ${h.barco ? "barco" : ""}">${h.barco ? "Barco" : "Hotel"}</span>`, h.ventas, h.items, "hotel", abiertas.has("h:" + h.k)).replace("<details", `<details data-k="h:${esc(h.k)}"`)).join("")
+    : `<div class="hempty">${q ? "No hay coincidencias." : "Cuando cargues hoteles o barcos en las ventas, van a aparecer acá."}</div>`;
+
+  // Tickets
+  const T = new Map(); // parque -> Map(tipo -> {ventas, items})
+  const tipoDe = (p, t) => { if (!T.has(p)) T.set(p, new Map()); const m = T.get(p); if (!m.has(t)) m.set(t, { ventas: [], items: [] }); return m.get(t); };
+  Object.entries(TIPOS_FIJOS).forEach(([p, ts]) => ts.forEach(t => tipoDe(p, t)));
+  ventas.filter(v => v.estado !== "Cancelado").forEach(v => tiposTicket(v.tickets, v.parques, v.destino).forEach(({parque, tipo}) => tipoDe(parque, tipo).ventas.push(v)));
+  pares.filter(x => num(x.op.ticketPuntaje) > 0).forEach(x => tiposTicket(x.inv.tickets, x.inv.parques, x.inv.destino).forEach(({parque, tipo}) => tipoDe(parque, tipo).items.push(x)));
+  const ordenParques = [...T.keys()].sort((a,b) => { const r = p => p === "Disney" ? 0 : p === "Universal" ? 1 : p === "Otros" ? 3 : 2; return r(a) - r(b) || a.localeCompare(b); });
+  const color = p => PROVEEDORES[p] || "#868E96";
+  const html = ordenParques.map(p => {
+    const fijos = TIPOS_FIJOS[p] || [];
+    const tipos = [...T.get(p).entries()]
+      .filter(([t, d]) => !q || sinAcentos([p, t, ...d.ventas.map(v => v.cliente + " " + v.tickets), ...d.items.map(x => x.inv.cliente)].join(" ")).includes(q))
+      .sort((a,b) => { const ia = fijos.indexOf(a[0]), ib = fijos.indexOf(b[0]); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a[0].localeCompare(b[0]); });
+    if (!tipos.length) return "";
+    return `<div class="park"><span class="dot" style="background:${color(p)}"></span>${esc(p)}</div>
+      <div class="hlist">${tipos.map(([t, d]) => tarjeta(t, "", d.ventas, d.items, "ticket", abiertas.has("t:" + p + "|" + t)).replace("<details", `<details data-k="t:${esc(p + "|" + t)}"`)).join("")}</div>`;
+  }).join("");
+  $("#tList").innerHTML = html || `<div class="hempty">No hay coincidencias.</div>`;
+}
+$("#tabHoteles").addEventListener("click", async e => {
+  const b = e.target.closest("[data-del]"); if (!b) return;
+  e.preventDefault();
+  if (!confirm("¿Borrar esta opinión? No se puede deshacer.")) return;
+  try { await store.borrarOpinion(b.dataset.del); toast("Opinión borrada"); }
+  catch (err) { toast("No se pudo borrar: " + err.message); }
+});
+$("#hText").addEventListener("input", renderHoteles);
+
+// Pestañas
+let tabActual = "ventas";
+try { if (localStorage.getItem("ventas_tab") === "hoteles") tabActual = "hoteles"; } catch {}
+function pintarTab(){
+  document.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === tabActual));
+  $("#tabVentas").hidden = tabActual !== "ventas";
+  $("#tabHoteles").hidden = tabActual !== "hoteles";
+  renderHoteles();
+}
+document.querySelector(".tabs").addEventListener("click", e => {
+  const b = e.target.closest(".tab"); if (!b) return;
+  tabActual = b.dataset.tab; try { localStorage.setItem("ventas_tab", tabActual); } catch {}
+  pintarTab();
+});
+
+// ---------- Pedir opinión desde la venta ----------
+const dlgL = $("#dlgLink");
+const linkDe = token => location.origin + location.pathname + "?opinion=" + token;
+function nuevoToken(){
+  const abc = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789", r = crypto.getRandomValues(new Uint8Array(22));
+  return [...r].map(x => abc[x % abc.length]).join("");
+}
+function mostrarLink(inv, tel){
+  const url = linkDe(inv.id);
+  $("#lkSub").textContent = [inv.cliente, inv.hotel || inv.tickets].filter(Boolean).join(" · ");
+  $("#lkUrl").value = url;
+  const nombre = (inv.cliente || "").split(" ")[0];
+  const txt = `¡Hola${nombre ? " " + nombre : ""}! ¿Me contás cómo te fue${inv.hotel ? " en " + inv.hotel : " con los tickets"}? Es un formulario cortito, te lleva un minuto: ${url}`;
+  const dig = String(tel || "").replace(/\D/g, "");
+  $("#lkWa").href = `https://wa.me/${dig}?text=${encodeURIComponent(txt)}`;
+  dlgL.showModal();
+}
+$("#lkClose").addEventListener("click", () => dlgL.close());
+$("#lkOk").addEventListener("click", () => dlgL.close());
+$("#lkCopy").addEventListener("click", async () => {
+  try { await navigator.clipboard.writeText($("#lkUrl").value); toast("Link copiado"); }
+  catch { $("#lkUrl").select(); document.execCommand("copy"); toast("Link copiado"); }
+});
+function pintarOpinionVenta(){
+  const box = $("#opBox");
+  if (!editId || !store || !store.crearInvitacion) { box.hidden = true; return; }
+  box.hidden = false;
+  const inv = invDeVenta(editId), op = inv && opDe(inv.id);
+  let html;
+  if (op) {
+    const partes = [num(op.hotelPuntaje) ? "Hotel " + estrellas(num(op.hotelPuntaje)) : "", num(op.ticketPuntaje) ? "Tickets " + estrellas(num(op.ticketPuntaje)) : ""].filter(Boolean).join(" &nbsp; ");
+    html = `<span><strong>Respondida</strong>${fechaTs(op.creado) ? " el " + fechaTs(op.creado) : ""} · ${partes}</span><span style="font-size:.85rem">La ves completa en Hoteles y tickets</span>`;
+  } else if (inv) {
+    html = `<span><strong>Pedida</strong>${fechaTs(inv.creado) ? " el " + fechaTs(inv.creado) : ""}, todavía sin respuesta.</span><button type="button" class="btn ghost sm" id="opVer">Ver link</button>`;
+  } else {
+    html = `<span>Mandale un link al cliente para que califique el hotel y los tickets.</span><button type="button" class="btn sm" id="opPedir">Pedir opinión</button>`;
+  }
+  $("#opStatus").innerHTML = html;
+}
+$("#opStatus").addEventListener("click", async e => {
+  if (e.target.closest("#opVer")) { const inv = invDeVenta(editId); if (inv) mostrarLink(inv, form.telefono.value); return; }
+  const b = e.target.closest("#opPedir"); if (!b) return;
+  const hotel = form.hotel.value.trim(), tickets = form.tickets.value.trim(), parques = form.parques.value.trim();
+  if (!hotel && !tickets) { toast("Cargá el hotel o los tickets antes de pedir la opinión"); return; }
+  const destino = (form.querySelector("input[name=destino]:checked") || {}).value || "";
+  const token = nuevoToken();
+  const data = { ventaId: editId, cliente: form.cliente.value.trim(), hotel, tickets, parques, destino,
+    fechaDesde: form.fechaDesde.value || "", fechaHasta: form.fechaHasta.value || "", creadoTxt: new Date().toISOString() };
+  b.disabled = true;
+  try {
+    await store.crearInvitacion(token, data);
+    mostrarLink({ id: token, ...data }, form.telefono.value);
+    pintarOpinionVenta();
+  } catch (err) {
+    b.disabled = false;
+    toast(err.code === "permission-denied" ? "Falta actualizar las reglas de Firestore" : "No se pudo crear el link: " + err.message);
+  }
+});
+
+// ---------- Autocompletar cliente ----------
+const sug = $("#sugCli");
+let sugItems = [], sugSel = -1;
+function clientesConocidos(){
+  const m = new Map();
+  [...ventas].sort((a,b) => String(a.fechaVenta||"").localeCompare(String(b.fechaVenta||""))).forEach(v => {
+    const k = sinAcentos(v.cliente); if (!k) return;
+    const c = m.get(k) || { nombre: v.cliente.trim(), email: "", telefono: "", n: 0 };
+    c.nombre = v.cliente.trim(); c.n++;
+    if ((v.email || "").trim()) c.email = v.email.trim();
+    if ((v.telefono || "").trim()) c.telefono = v.telefono.trim();
+    m.set(k, c);
+  });
+  return [...m.values()];
+}
+function cerrarSug(){ sug.hidden = true; sugItems = []; sugSel = -1; form.cliente.setAttribute("aria-expanded", "false"); }
+function completarCliente(c){
+  form.cliente.value = c.nombre;
+  if (!form.email.value.trim() && c.email) form.email.value = c.email;
+  if (!form.telefono.value.trim() && c.telefono) form.telefono.value = c.telefono;
+  cerrarSug();
+}
+function mostrarSug(){
+  const q = sinAcentos(form.cliente.value);
+  if (q.length < 2) return cerrarSug();
+  sugItems = clientesConocidos().filter(c => sinAcentos(c.nombre).includes(q) && sinAcentos(c.nombre) !== q).slice(0, 6);
+  if (!sugItems.length) return cerrarSug();
+  sugSel = -1;
+  sug.innerHTML = sugItems.map((c, i) => `<button type="button" role="option" data-i="${i}"><b>${esc(c.nombre)}</b><small>${esc([c.email, c.telefono].filter(Boolean).join(" · ") || "Sin mail ni teléfono")} · ${c.n} venta${c.n !== 1 ? "s" : ""}</small></button>`).join("");
+  sug.hidden = false; form.cliente.setAttribute("aria-expanded", "true");
+}
+form.cliente.addEventListener("input", mostrarSug);
+form.cliente.addEventListener("keydown", e => {
+  if (sug.hidden) return;
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    e.preventDefault();
+    sugSel = (sugSel + (e.key === "ArrowDown" ? 1 : -1) + sugItems.length) % sugItems.length;
+    sug.querySelectorAll("button").forEach((b, i) => b.classList.toggle("on", i === sugSel));
+  } else if (e.key === "Enter" && sugSel >= 0) { e.preventDefault(); completarCliente(sugItems[sugSel]); }
+  else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); cerrarSug(); }
+});
+sug.addEventListener("mousedown", e => e.preventDefault());
+sug.addEventListener("click", e => { const b = e.target.closest("button"); if (b) completarCliente(sugItems[+b.dataset.i]); });
+form.cliente.addEventListener("blur", () => setTimeout(cerrarSug, 150));
+form.cliente.addEventListener("change", () => {
+  const c = clientesConocidos().find(x => sinAcentos(x.nombre) === sinAcentos(form.cliente.value));
+  if (c) { if (!form.email.value.trim() && c.email) form.email.value = c.email; if (!form.telefono.value.trim() && c.telefono) form.telefono.value = c.telefono; }
+});
+
+// ---------- Formulario público de opinión ----------
+async function paginaOpinion(token){
+  document.body.classList.add("modo-op");
+  document.title = "Tu opinión · Pasaporte Mágico";
+  const card = $("#opCard");
+  const msg = (titulo, texto) => { card.innerHTML = `<div class="op-msg"><h2>${titulo}</h2><p>${texto}</p></div>`; };
+  let api, inv;
+  try { api = await initPublico(); inv = await api.getInv(token); }
+  catch (e) { return msg("Link no disponible", "No pudimos abrir el formulario. Probá de nuevo en un rato."); }
+  if (!inv) return msg("Link no válido", "Este link no existe o fue borrado. Pedile uno nuevo a Hugo.");
+  const nombre = (inv.cliente || "").split(" ")[0];
+  const barco = inv.destino === "Cruceros";
+  const tk = inv.tickets || (inv.hotel ? "" : inv.parques) || "";
+  const titulo = inv.hotel || tk;
+  const viaje = rangoViaje(inv.fechaDesde, inv.fechaHasta);
+  const stars = g => `<div class="op-stars" data-g="${g}" role="radiogroup" aria-label="Puntaje">${[1,2,3,4,5].map(n => `<button type="button" data-n="${n}" role="radio" aria-checked="false" aria-label="${n} estrella${n>1?"s":""}">★</button>`).join("")}</div>`;
+  const opts = (name, list) => `<div class="op-opts">${list.map(([v,t]) => `<label><input type="radio" name="${name}" value="${v}">${t}</label>`).join("")}</div>`;
+  const EXPO = [["mejor","Mejor de lo que esperaba"],["igual","Lo que esperaba"],["peor","Peor de lo que esperaba"]];
+  const bloque = (g, h3, quien) => `<div class="op-block">
+      <h3>${h3}</h3>
+      <div class="op-q" data-req="${g}Puntaje"><p>¿Qué puntaje le das ${quien}?</p>${stars(g)}</div>
+      <div class="op-q" data-req="${g}Expect"><p>¿Fue lo que esperabas según mi recomendación?</p>${opts(g + "Expect", EXPO)}</div>
+      <div class="op-q"><p>¿Qué fue lo mejor? <small>(opcional)</small></p><textarea name="${g}Mejor" maxlength="1000"></textarea></div>
+    </div>`;
+  card.innerHTML = `<form id="opForm" novalidate>
+    <p class="op-hola">¡Hola${nombre ? " " + esc(nombre) : ""}! Contame cómo te fue.</p>
+    <p class="op-sobre">Tu opinión sobre</p>
+    <h1 class="op-hotel">${esc(titulo)}</h1>
+    ${viaje ? `<p class="op-fechas">Viaje del ${esc(viaje)}</p>` : ""}
+    ${inv.hotel ? bloque("hotel", barco ? "El barco" : "El hotel", barco ? "al barco" : "al hotel") : ""}
+    ${tk ? bloque("ticket", `Los tickets <span>${esc(tk)}</span>`, "a los tickets") : ""}
+    <div class="op-block">
+      <div class="op-q" data-req="instagram"><p>¿Puedo compartir tu opinión en Instagram?</p>${opts("instagram", [["con_nombre","Sí, con mi nombre"],["sin_nombre","Sí, sin mi nombre"],["no","No"]])}</div>
+      <button class="btn op-send" type="submit">Enviar mi opinión</button>
+    </div>
+  </form>`;
+  const puntajes = {};
+  card.querySelectorAll(".op-stars").forEach(g => g.addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b) return;
+    const n = +b.dataset.n; puntajes[g.dataset.g] = n;
+    g.querySelectorAll("button").forEach(x => { x.classList.toggle("on", +x.dataset.n <= n); x.setAttribute("aria-checked", +x.dataset.n === n); });
+    g.closest(".op-q").classList.remove("err");
+  }));
+  const f = $("#opForm");
+  f.addEventListener("change", e => { const q = e.target.closest(".op-q"); if (q) q.classList.remove("err"); });
+  f.addEventListener("submit", async e => {
+    e.preventDefault();
+    const fd = Object.fromEntries(new FormData(f));
+    const data = { instagram: fd.instagram };
+    if (inv.hotel) Object.assign(data, { hotelPuntaje: puntajes.hotel, hotelExpect: fd.hotelExpect, hotelMejor: (fd.hotelMejor || "").trim() });
+    if (tk) Object.assign(data, { ticketPuntaje: puntajes.ticket, ticketExpect: fd.ticketExpect, ticketMejor: (fd.ticketMejor || "").trim() });
+    let falta = null;
+    f.querySelectorAll("[data-req]").forEach(q => { const ok = !!data[q.dataset.req]; q.classList.toggle("err", !ok); if (!ok && !falta) falta = q; });
+    if (falta) { falta.scrollIntoView({ behavior: "smooth", block: "center" }); return; }
+    const btn = f.querySelector(".op-send"); btn.disabled = true; btn.textContent = "Enviando…";
+    try {
+      await api.enviar(token, data);
+      msg("¡Muchas gracias!", "Tu opinión me ayuda a recomendar cada vez mejor. ¡Que sigan los viajes mágicos!");
+    } catch (err) {
+      if (err.code === "permission-denied") msg("Ya recibí tu opinión", "Este formulario ya fue enviado. ¡Gracias!");
+      else { btn.disabled = false; btn.textContent = "Enviar mi opinión"; alert("No se pudo enviar. Revisá tu conexión y probá de nuevo."); }
+    }
+  });
+}
+
 // ---------- CSV ----------
 $("#btnCsv").addEventListener("click", () => {
   const cols = [["fechaVenta","Fecha venta"],["destino","Proveedor"],["numReserva","N° de reserva"],["cliente","Cliente"],["email","Email"],["telefono","Teléfono"],["fechaDesde","Salida"],["fechaHasta","Regreso"],["adultos","Adultos"],["ninos","Niños"],["parques","Parques / itinerario"],["tickets","Tickets / servicios"],["hotel","Hotel / barco"],["montoTotal","Monto total"],["comisionPct","Comisión total %"],["comision","Comisión total"],["comisionAgente","Mi comisión"],["miPct","Mi %"],["fechaCobroCom","Cobro mi comisión"],["parteAgencia","Parte agencia"],["montoCobrado","Cobrado"],["cantPagos","Cant. pagos"],["detallePagos","Detalle pagos"],["saldo","Saldo"],["estado","Estado"],["vencimiento","Vence saldo"],["notas","Notas"]];
@@ -842,7 +1328,10 @@ $("#btnCsv").addEventListener("click", () => {
 
 // ---------- Arranque ----------
 renderChips();
+pintarTab();
 (async () => {
+  const tokenOp = new URLSearchParams(location.search).get("opinion");
+  if (tokenOp) return paginaOpinion(tokenOp);
   try {
     if (configurado) store = await initFirebase();
     else { store = initLocal(); banner("Modo prueba: los datos se guardan solo en este navegador."); }
@@ -850,7 +1339,14 @@ renderChips();
     store = initLocal();
     banner("No se pudo conectar con Firebase (" + esc(err.message) + "). Estás en modo prueba local.", true);
   }
-  if (!store.auth) { store.subscribe(arr => { ventas = arr; render(); }); return; }
+  const escucharOpiniones = () => store.subscribeOpiniones((inv, op) => {
+    opError = ""; invitaciones = inv.map(i => ({ ...i, creadoTxt: i.creadoTxt || "" })); opiniones = op;
+    renderHoteles(); if (dlg.open) pintarOpinionVenta();
+  }, e => {
+    opError = e.code === "permission-denied" ? "Para ver las opiniones falta actualizar las reglas de Firestore." : "No se pudieron leer las opiniones: " + esc(e.message);
+    renderHoteles();
+  });
+  if (!store.auth) { store.subscribe(arr => { ventas = arr; render(); }); escucharOpiniones(); return; }
 
   const gate = $("#gate"), msg = $("#gateMsg");
   const mostrarGate = (texto, error = "", otra = false) => {
@@ -886,6 +1382,7 @@ renderChips();
       if (e.code === "permission-denied") mostrarGate("La cuenta " + user.email + " no tiene acceso a estas ventas.", "", true);
       else banner("No se pudieron leer las ventas: " + esc(e.message), true);
     });
+    escucharOpiniones();
   });
 })();
 </script>
