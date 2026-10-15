@@ -957,7 +957,7 @@ $("#qpForm").addEventListener("submit", async e => {
   $("#qpSave").disabled = true;
   try {
     await store.update(v0.id, data); toast("Pagos guardados"); dlgP.close();
-    if (cal) cal([v0.id], [...ventas.filter(v => v.id !== v0.id), { ...v0, ...data }], []);
+    if (cal) cal([v0.id], [...ventas.filter(v => v.id !== v0.id), { ...v0, ...data }], [v0.cliente]);
   }
   catch (err) { toast("No se pudo guardar: " + err.message); }
   finally { $("#qpSave").disabled = false; }
@@ -1032,7 +1032,8 @@ $("#btnDelete").addEventListener("click", async () => {
     const id = editId, borrada = ventas.find(v => v.id === id);
     await store.remove(id); dlg.close(); toast("Venta eliminada");
     if (cal) cal([id], ventas.filter(v => v.id !== id), [borrada && borrada.cliente]);
-    for (const inv of invitaciones.filter(i => i.ventaId === id)) {
+    for (const inv of invitaciones.filter(i => idsInv(i).includes(id))) {
+      if (idsInv(inv).some(x => x !== id && ventas.some(v => v.id === x))) continue;
       try { if (opDe(inv.id)) await store.borrarOpinion(inv.id); await store.borrarInvitacion(inv.id); } catch {}
     }
   }
@@ -1053,39 +1054,49 @@ const sinAcentos = s => String(s || "").normalize("NFD").replace(/[\u0300-\u036f
 
 // ---------- Opiniones (vista de Hugo) ----------
 let invitaciones = [], opiniones = [], opError = "";
-const invDeVenta = id => invitaciones.filter(i => i.ventaId === id).sort((a,b) => String(b.creadoTxt||"").localeCompare(String(a.creadoTxt||"")))[0];
+const idsInv = i => Array.isArray(i.ventaIds) && i.ventaIds.length ? i.ventaIds : [i.ventaId];
+const invDeVenta = id => invitaciones.filter(i => idsInv(i).includes(id)).sort((a,b) => String(b.creadoTxt||"").localeCompare(String(a.creadoTxt||"")))[0];
+// Hoteles/barcos de una invitación (las viejas tenían uno solo)
+const hotelesInv = inv => Array.isArray(inv.hoteles) && inv.hoteles.length ? inv.hoteles
+  : (inv.hotel ? [{ ventaId: inv.ventaId, hotel: inv.hotel, destino: inv.destino || "", fechaDesde: inv.fechaDesde || "", fechaHasta: inv.fechaHasta || "" }] : []);
+// Respuestas de una opinión, una por hotel (las viejas guardaban hotelPuntaje)
+function respuestasOp(op, inv){
+  const hs = hotelesInv(inv);
+  if (Array.isArray(op.respuestas)) return op.respuestas.filter(r => hs[r.i]).map(r => ({ ...hs[r.i], puntaje: num(r.puntaje), expect: r.expect || "", mejor: r.mejor || "" }));
+  if (num(op.hotelPuntaje) > 0 && hs[0]) return [{ ...hs[0], puntaje: num(op.hotelPuntaje), expect: op.hotelExpect || "", mejor: op.hotelMejor || "" }];
+  return [];
+}
 const opDe = token => opiniones.find(o => o.id === token);
 const estrellas = n => { const r = Math.round(n); return `<span class="stars" aria-label="${n.toFixed(1)} de 5">${"★".repeat(r)}<span class="off">${"★".repeat(5 - r)}</span></span>`; };
 const EXP = { mejor: "Mejor de lo esperado", igual: "Lo que esperaba", peor: "Peor de lo esperado" };
 const fechaTs = c => { if (!c) return ""; const d = c.toDate ? c.toDate() : new Date(c); return isNaN(d) ? "" : fechaCorta(d.toLocaleDateString("sv-SE")); };
 const rangoViaje = (d, h) => d ? fechaCorta(d) + (h ? " al " + fechaCorta(h) : "") : "";
 
-function bloqueOpiniones(items, campo){
-  // items: [{op, inv}]
-  const conP = items.filter(x => num(x.op[campo + "Puntaje"]) > 0);
-  if (!conP.length) return `<div class="hempty">Todavía no hay opiniones.</div>`;
+function bloqueOpiniones(items){
+  // items: respuestas [{op, inv, hotel, puntaje, expect, mejor, fechaDesde, fechaHasta}]
+  if (!items.length) return `<div class="hempty">Todavía no hay opiniones.</div>`;
   const cnt = { mejor:0, igual:0, peor:0 };
-  conP.forEach(x => { const e = x.op[campo + "Expect"]; if (cnt[e] !== undefined) cnt[e]++; });
+  items.forEach(x => { if (cnt[x.expect] !== undefined) cnt[x.expect]++; });
   return `<div class="expect">${Object.entries(cnt).filter(([,n]) => n).map(([k,n]) => `<span class="ex-${k}">${EXP[k]}: ${n}</span>`).join("")}</div>
-    ${conP.map(({op, inv}) => `<div class="opi">
-      <div class="opi-top"><b>${esc(inv.cliente || "Cliente")}</b>${estrellas(num(op[campo + "Puntaje"]))}</div>
-      ${op[campo + "Expect"] ? `<div class="expect"><span class="ex-${esc(op[campo + "Expect"])}">${EXP[op[campo + "Expect"]] || ""}</span></div>` : ""}
-      ${op[campo + "Mejor"] ? `<q>${esc(op[campo + "Mejor"])}</q>` : ""}
-      <div class="opi-foot"><span>${rangoViaje(inv.fechaDesde, inv.fechaHasta) || ""}${fechaTs(op.creado) ? " · respondió el " + fechaTs(op.creado) : ""}</span>
-        <span><button type="button" class="opi-del" data-del="${esc(op.id)}">Borrar</button></span></div>
+    ${items.map(x => `<div class="opi">
+      <div class="opi-top"><b>${esc(x.inv.cliente || "Cliente")}</b>${estrellas(x.puntaje)}</div>
+      ${x.expect ? `<div class="expect"><span class="ex-${esc(x.expect)}">${EXP[x.expect] || ""}</span></div>` : ""}
+      ${x.mejor ? `<q>${esc(x.mejor)}</q>` : ""}
+      <div class="opi-foot"><span>${rangoViaje(x.fechaDesde, x.fechaHasta) || ""}${fechaTs(x.op.creado) ? " · respondió el " + fechaTs(x.op.creado) : ""}</span>
+        <span><button type="button" class="opi-del" data-del="${esc(x.op.id)}">Borrar</button></span></div>
     </div>`).join("")}`;
 }
-function tarjeta(nombre, badge, ventasL, items, campo, abierta){
-  const ps = campo ? items.map(x => num(x.op[campo + "Puntaje"])).filter(n => n > 0) : [];
+function tarjeta(nombre, badge, ventasL, items, conOpiniones, abierta){
+  const ps = conOpiniones ? items.map(x => x.puntaje).filter(n => n > 0) : [];
   const prom = ps.length ? ps.reduce((a,b) => a + b, 0) / ps.length : 0;
   return `<details class="hcard" ${abierta ? "open" : ""}>
     <summary>
       <span class="hname">${esc(nombre)}${badge}</span>
       <span class="hmeta">${ventasL.length} venta${ventasL.length !== 1 ? "s" : ""}${ps.length ? ` · ${ps.length} opinión${ps.length !== 1 ? "es" : ""}` : ""}</span>
-      ${campo ? `<span class="hscore">${ps.length ? `${estrellas(prom)}<small>${prom.toLocaleString("es-AR",{maximumFractionDigits:1})} de 5</small>` : `<span class="none">Sin opiniones</span>`}</span>` : ""}
+      ${conOpiniones ? `<span class="hscore">${ps.length ? `${estrellas(prom)}<small>${prom.toLocaleString("es-AR",{maximumFractionDigits:1})} de 5</small>` : `<span class="none">Sin opiniones</span>`}</span>` : ""}
     </summary>
     <div class="hbody">
-      ${campo ? `<div><div class="hsub">Opiniones</div>${bloqueOpiniones(items, campo)}</div>` : ""}
+      ${conOpiniones ? `<div><div class="hsub">Opiniones</div>${bloqueOpiniones(items)}</div>` : ""}
       <div><div class="hsub">Ventas</div><div class="hventas">${ventasL.length ? ventasL.map(v => `<span>${esc(v.cliente)}${v.fechaDesde ? " · " + rangoViaje(v.fechaDesde, v.fechaHasta) : ""} · ${esc(v.destino || "")}</span>`).join("") : `<span class="hempty">Sin ventas todavía.</span>`}</div></div>
     </div>
   </details>`;
@@ -1096,7 +1107,8 @@ function renderHoteles(){
   const abiertas = new Set([...document.querySelectorAll("#tabHoteles details[open]")].map(d => d.dataset.k));
   $("#opBanner").innerHTML = opError ? `<div class="banner err">${opError}</div>` : "";
   const ids = new Set(ventas.filter(v => v.estado !== "Cancelado").map(v => v.id));
-  const pares = opiniones.map(op => ({ op, inv: invitaciones.find(i => i.id === op.id) })).filter(x => x.inv && ids.has(x.inv.ventaId));
+  const resp = opiniones.flatMap(op => { const inv = invitaciones.find(i => i.id === op.id); return inv ? respuestasOp(op, inv).map(r => ({ ...r, op, inv })) : []; })
+    .filter(r => ids.has(r.ventaId) && r.puntaje > 0);
 
   // Hoteles
   const H = new Map();
@@ -1105,22 +1117,23 @@ function renderHoteles(){
     const h = hotelDe(sinAcentos(v.hotel)); h.ventas.push(v); h.nombres[v.hotel.trim()] = (h.nombres[v.hotel.trim()] || 0) + 1;
     if (v.destino === "Cruceros") h.barco = true;
   });
-  pares.filter(x => sinAcentos(x.inv.hotel) && num(x.op.hotelPuntaje) > 0).forEach(x => {
-    const h = hotelDe(sinAcentos(x.inv.hotel)); h.items.push(x); h.nombres[x.inv.hotel.trim()] = (h.nombres[x.inv.hotel.trim()] || 0);
-    if (x.inv.destino === "Cruceros") h.barco = true;
+  resp.filter(x => sinAcentos(x.hotel)).forEach(x => {
+    const h = hotelDe(sinAcentos(x.hotel)); h.items.push(x); h.nombres[x.hotel.trim()] = (h.nombres[x.hotel.trim()] || 0);
+    if (x.destino === "Cruceros") h.barco = true;
   });
   const hoteles = [...H.entries()].map(([k, h]) => ({ k, ...h, nombre: Object.entries(h.nombres).sort((a,b) => b[1]-a[1])[0][0] }))
     .filter(h => !q || sinAcentos([h.nombre, ...h.ventas.map(v => v.cliente), ...h.items.map(x => x.inv.cliente)].join(" ")).includes(q))
     .sort((a,b) => a.nombre.localeCompare(b.nombre, "es", { sensitivity:"base" }));
   $("#hList").innerHTML = hoteles.length
-    ? hoteles.map(h => tarjeta(h.nombre, `<span class="hbadge ${h.barco ? "barco" : ""}">${h.barco ? "Barco" : "Hotel"}</span>`, h.ventas, h.items, "hotel", abiertas.has("h:" + h.k)).replace("<details", `<details data-k="h:${esc(h.k)}"`)).join("")
+    ? hoteles.map(h => tarjeta(h.nombre, `<span class="hbadge ${h.barco ? "barco" : ""}">${h.barco ? "Barco" : "Hotel"}</span>`, h.ventas, h.items, true, abiertas.has("h:" + h.k)).replace("<details", `<details data-k="h:${esc(h.k)}"`)).join("")
     : `<div class="hempty">${q ? "No hay coincidencias." : "Cuando cargues hoteles o barcos en las ventas, van a aparecer acá."}</div>`;
 
 }
 $("#tabHoteles").addEventListener("click", async e => {
   const b = e.target.closest("[data-del]"); if (!b) return;
   e.preventDefault();
-  if (!confirm("¿Borrar esta opinión? No se puede deshacer.")) return;
+  const inv = invitaciones.find(i => i.id === b.dataset.del), n = inv ? hotelesInv(inv).length : 1;
+  if (!confirm(n > 1 ? `¿Borrar esta opinión? Incluye ${n} hoteles o barcos del mismo viaje y se borra completa. No se puede deshacer.` : "¿Borrar esta opinión? No se puede deshacer.")) return;
   try { await store.borrarOpinion(b.dataset.del); toast("Opinión borrada"); }
   catch (err) { toast("No se pudo borrar: " + err.message); }
 });
@@ -1150,15 +1163,17 @@ function nuevoToken(){
 }
 function mostrarLink(inv, tel, mail){
   const url = linkDe(inv.id);
-  $("#lkSub").textContent = [inv.cliente, inv.hotel].filter(Boolean).join(" · ");
+  const hs = hotelesInv(inv);
+  const lugar = hs.length === 1 ? hs[0].hotel : "";
+  $("#lkSub").textContent = [inv.cliente, hs.map(h => h.hotel).join(" + ")].filter(Boolean).join(" · ");
   $("#lkUrl").value = url;
   const nombre = (inv.cliente || "").split(" ")[0];
-  const txt = `¡Hola${nombre ? " " + nombre : ""}! Gracias por viajar conmigo. ¿Me contás cómo te fue${inv.hotel ? " en " + inv.hotel : ""}? Es un formulario cortito, te lleva un minuto: ${url}`;
-  const dig = String(tel || "").replace(/\D/g, "");
-  $("#lkWa").href = `https://wa.me/${dig}?text=${encodeURIComponent(txt)}`;
+  const como = lugar ? ` en ${lugar}` : " en el viaje";
+  const txt = `¡Hola${nombre ? " " + nombre : ""}! Gracias por viajar conmigo. ¿Me contás cómo te fue${como}? Es un formulario cortito, te lleva un minuto: ${url}`;
+  $("#lkWa").href = `https://wa.me/${telWa(tel)}?text=${encodeURIComponent(txt)}`;
   const para = String(mail || "").trim();
-  const asunto = inv.hotel ? `¿Cómo te fue en ${inv.hotel}?` : "¿Cómo te fue en tu viaje?";
-  const cuerpo = `¡Hola${nombre ? " " + nombre : ""}!\n\nGracias por viajar conmigo. ¿Me contás cómo te fue${inv.hotel ? " en " + inv.hotel : ""}? Es un formulario cortito, te lleva un minuto:\n\n${url}\n\n¡Gracias!\nHugo · Pasaporte Mágico`;
+  const asunto = lugar ? `¿Cómo te fue en ${lugar}?` : "¿Cómo te fue en tu viaje?";
+  const cuerpo = `¡Hola${nombre ? " " + nombre : ""}!\n\nGracias por viajar conmigo. ¿Me contás cómo te fue${como}? Es un formulario cortito, te lleva un minuto:\n\n${url}\n\n¡Gracias!\nHugo · Pasaporte Mágico`;
   $("#lkMail").href = `mailto:${encodeURIComponent(para)}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
   $("#lkGmail").href = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(para)}&su=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
   dlgL.showModal();
@@ -1176,7 +1191,8 @@ function pintarOpinionVenta(){
   const inv = invDeVenta(editId), op = inv && opDe(inv.id);
   let html;
   if (op) {
-    const partes = num(op.hotelPuntaje) ? estrellas(num(op.hotelPuntaje)) : "";
+    const rs = respuestasOp(op, inv), r = rs.find(x => x.ventaId === editId) || rs[0];
+    const partes = r ? estrellas(r.puntaje) : "";
     html = `<span><strong>Respondida</strong>${fechaTs(op.creado) ? " el " + fechaTs(op.creado) : ""} · ${partes}</span><span style="font-size:.85rem">La ves completa en Hoteles y cruceros</span>`;
   } else if (inv) {
     html = `<span><strong>Pedida</strong>${fechaTs(inv.creado) ? " el " + fechaTs(inv.creado) : ""}, todavía sin respuesta.</span><button type="button" class="btn ghost sm" id="opVer">Ver link</button>`;
@@ -1186,30 +1202,65 @@ function pintarOpinionVenta(){
   $("#opStatus").innerHTML = html;
 }
 $("#opStatus").addEventListener("click", async e => {
-  if (e.target.closest("#opVer")) { const inv = invDeVenta(editId); if (inv) mostrarLink(inv, form.telefono.value, form.email.value); return; }
-  const b = e.target.closest("#opPedir"); if (!b) return;
-  const hotel = form.hotel.value.trim(), tickets = form.tickets.value.trim(), parques = form.parques.value.trim();
-  if (!hotel) { toast("Cargá el hotel o barco antes de pedir la opinión"); return; }
-  const destino = (form.querySelector("input[name=destino]:checked") || {}).value || "";
-  const token = nuevoToken();
-  const data = { ventaId: editId, cliente: form.cliente.value.trim(), hotel, tickets, parques, destino,
-    fechaDesde: form.fechaDesde.value || "", fechaHasta: form.fechaHasta.value || "", creadoTxt: new Date().toISOString() };
-  b.disabled = true;
-  try {
-    await store.crearInvitacion(token, data);
-    mostrarLink({ id: token, ...data }, form.telefono.value, form.email.value);
-    pintarOpinionVenta();
-  } catch (err) {
-    b.disabled = false;
-    toast(err.code === "permission-denied" ? "Falta actualizar las reglas de Firestore" : "No se pudo crear el link: " + err.message);
+  if (e.target.closest("#opVer")) {
+    const inv = invDeVenta(editId); if (!inv) return;
+    const tv = viajeDe(editId, ventas);
+    mostrarLink(inv, tv ? tv.telefono : form.telefono.value, tv ? tv.email : form.email.value); return;
   }
+  const b = e.target.closest("#opPedir"); if (!b) return;
+  const v = ventas.find(x => x.id === editId); if (!v) return;
+  b.disabled = true;
+  try { await pedirOpinion(v); pintarOpinionVenta(); }
+  catch (err) { toast(err.code === "permission-denied" ? "Falta actualizar las reglas de Firestore" : "No se pudo crear el link: " + err.message); }
+  finally { b.disabled = false; }
 });
 
 // ---------- Fechas ----------
 const sumarDias = (f, n) => { const [y,m,d] = f.split("-").map(Number); const x = new Date(Date.UTC(y, m-1, d + n)); return x.toISOString().slice(0,10); };
 const difDias = (a, b) => Math.round((Date.parse(a) - Date.parse(b)) / 86400000); // a - b
 const nombrePila = c => String(c || "").trim().split(/\s+/)[0] || "";
-const waLink = (tel, txt) => `https://wa.me/${String(tel || "").replace(/\D/g, "")}?text=${encodeURIComponent(txt)}`;
+// Teléfono en formato internacional para WhatsApp
+function telWa(tel){
+  const raw = String(tel || "").trim(); let d = raw.replace(/\D/g, "");
+  if (!d) return "";
+  if (raw.startsWith("+") || d.startsWith("54")) return d;   // ya tiene código de país
+  if (d.startsWith("00")) return d.slice(2);                  // 00 + código de otro país
+  if (d.startsWith("0")) d = d.slice(1);
+  if (d.length === 8) return "54911" + d;                     // Buenos Aires sin característica
+  if (d.length === 10) return "549" + d;                      // con característica (11, 351, …)
+  return d;
+}
+const waLink = (tel, txt) => `https://wa.me/${telWa(tel)}?text=${encodeURIComponent(txt)}`;
+// Ventas del mismo cliente con menos de 30 días entre una y otra = un solo viaje
+function viajes(lista){
+  const porCli = new Map();
+  lista.filter(v => v.estado !== "Cancelado" && v.fechaDesde).forEach(v => {
+    const k = sinAcentos(v.cliente); if (!k) return;
+    if (!porCli.has(k)) porCli.set(k, []);
+    porCli.get(k).push(v);
+  });
+  const out = [];
+  porCli.forEach((vs, k) => {
+    vs.sort((a,b) => a.fechaDesde.localeCompare(b.fechaDesde) || String(a.id).localeCompare(String(b.id)));
+    let cur = null;
+    vs.forEach(v => {
+      const fin = v.fechaHasta || v.fechaDesde;
+      if (cur && difDias(v.fechaDesde, cur.hasta) < 30) { cur.ventas.push(v); if (fin > cur.hasta) cur.hasta = fin; }
+      else { cur = { k, ventas: [v], desde: v.fechaDesde, hasta: fin }; out.push(cur); }
+    });
+  });
+  out.forEach(t => {
+    t.lider = t.ventas[0];
+    t.ids = t.ventas.map(v => v.id);
+    t.hoteles = t.ventas.filter(v => (v.hotel || "").trim()).map(v => ({ ventaId: v.id, hotel: v.hotel.trim(), destino: v.destino || "", fechaDesde: v.fechaDesde || "", fechaHasta: v.fechaHasta || "" }));
+    const conTel = t.ventas.find(v => (v.telefono || "").trim()) || {}, conMail = t.ventas.find(v => (v.email || "").trim()) || {};
+    t.telefono = (t.lider.telefono || "").trim() || conTel.telefono || "";
+    t.email = (t.lider.email || "").trim() || conMail.email || "";
+  });
+  return out;
+}
+const viajeDe = (id, lista) => viajes(lista).find(t => t.ids.includes(id));
+const detalleViaje = t => t.ventas.map(x => `• ${x.destino || ""}${x.numReserva ? " " + x.numReserva : ""}: ${rangoViaje(x.fechaDesde, x.fechaHasta)}${x.hotel ? " · " + x.hotel : ""}`).join("\n");
 const saldoDe = v => Math.max(num(v.montoTotal) - num(v.montoCobrado), 0);
 const regresoDe = v => v.fechaHasta || v.fechaDesde || "";
 function proxCumple(fechaNac, desde){
@@ -1246,21 +1297,24 @@ function tareas(){
   const quedan = d => d === 0 ? "Hoy" : d === 1 ? "Mañana" : d > 1 ? `En ${d} días` : d === -1 ? "Ayer" : `Hace ${-d} días`;
   ventas.filter(v => v.estado !== "Cancelado").forEach(v => {
     const seg = v.seguimiento || {};
-    if (v.fechaDesde && !seg.viaje) {
-      const d = difDias(sumarDias(v.fechaDesde, -2), t);
-      if (d <= 0 && difDias(v.fechaDesde, t) >= 0) out.push({ v, tipo: "viaje", orden: v.fechaDesde, ic: "✈️", txt: `Desearle buen viaje a <b>${esc(v.cliente)}</b>`, sub: `Sale ${difDias(v.fechaDesde, t) === 0 ? "hoy" : "el " + fechaCorta(v.fechaDesde)}${v.hotel ? " · " + esc(v.hotel) : ""}`, cuando: quedan(Math.max(d, 0)), wa: waLink(v.telefono, MSJ.viaje(v)) });
-    }
     if (v.vencimiento && saldoDe(v) > 0 && v.estado !== "Pagado" && seg.pago !== v.vencimiento) {
       const dv = difDias(v.vencimiento, t);
       if (dv <= 10 && dv >= -30) out.push({ v, tipo: "pago", orden: v.vencimiento, ic: "💰", txt: `Recordarle el pago a <b>${esc(v.cliente)}</b>`, sub: `${dv < 0 ? "Venció" : "Vence"} el ${fechaCorta(v.vencimiento)} · debe ${fmt(saldoDe(v))}`, cuando: dv < 0 ? `Venció hace ${-dv} día${dv === -1 ? "" : "s"}` : dv === 0 ? "Vence hoy" : `Vence en ${dv} día${dv === 1 ? "" : "s"}`, tarde: dv < 0, wa: waLink(v.telefono, MSJ.pago(v)) });
     }
-    const r = regresoDe(v);
-    if (r && !seg.gracias && !invDeVenta(v.id)) {
-      const d = difDias(sumarDias(r, 2), t);
-      if (d <= 0 && d >= -30) out.push({ v, tipo: "gracias", orden: sumarDias(r, 2), ic: "🙏", txt: `Agradecerle a <b>${esc(v.cliente)}</b>${v.hotel ? " y pedirle la opinión" : ""}`, sub: `Volvió el ${fechaCorta(r)}${v.hotel ? " · " + esc(v.hotel) : ""}`, cuando: quedan(d), opinion: !!v.hotel, wa: waLink(v.telefono, MSJ.gracias(v)) });
+  });
+  viajes(ventas).forEach(tv => {
+    const L = tv.lider, segs = tv.ventas.map(v => v.seguimiento || {});
+    const lugares = tv.hoteles.map(h => esc(h.hotel)).join(" + ");
+    if (!segs.some(x => x.viaje)) {
+      const d = difDias(sumarDias(tv.desde, -2), t);
+      if (d <= 0 && difDias(tv.desde, t) >= 0) out.push({ v: L, tipo: "viaje", orden: tv.desde, ic: "✈️", txt: `Desearle buen viaje a <b>${esc(L.cliente)}</b>`, sub: `Sale ${difDias(tv.desde, t) === 0 ? "hoy" : "el " + fechaCorta(tv.desde)}${lugares ? " · " + lugares : ""}`, cuando: quedan(Math.max(d, 0)), wa: waLink(tv.telefono, MSJ.viaje(L)) });
+    }
+    if (!segs.some(x => x.gracias) && !tv.ids.some(id => invDeVenta(id))) {
+      const d = difDias(sumarDias(tv.hasta, 2), t);
+      if (d <= 0 && d >= -30) out.push({ v: L, tipo: "gracias", orden: sumarDias(tv.hasta, 2), ic: "🙏", txt: `Agradecerle a <b>${esc(L.cliente)}</b>${tv.hoteles.length ? " y pedirle la opinión" : ""}`, sub: `Volvió el ${fechaCorta(tv.hasta)}${lugares ? " · " + lugares : ""}`, cuando: quedan(d), opinion: tv.hoteles.length > 0, wa: waLink(tv.telefono, MSJ.gracias(L)) });
     }
   });
-  cumpleanieros(ventas).forEach(c => {
+    cumpleanieros(ventas).forEach(c => {
     const f = proxCumple(c.fechaNac, sumarDias(t, -0));
     const d = difDias(f, t), clave = "cumple" + f.slice(0,4);
     if (d <= 3 && !(c.venta.seguimiento || {})[clave]) out.push({ v: c.venta, tipo: clave, orden: f, ic: "🎂", txt: `Saludar a <b>${esc(c.nombre)}</b> por su cumpleaños`, sub: fechaCorta(f), cuando: quedan(d), wa: waLink(c.telefono, MSJ.cumple(c)) });
@@ -1298,11 +1352,16 @@ $("#todo").addEventListener("click", async e => {
   }
 });
 async function pedirOpinion(v){
+  const tv = viajeDe(v.id, ventas);
+  const hoteles = tv ? tv.hoteles : ((v.hotel || "").trim() ? [{ ventaId: v.id, hotel: v.hotel.trim(), destino: v.destino || "", fechaDesde: v.fechaDesde || "", fechaHasta: v.fechaHasta || "" }] : []);
+  if (!hoteles.length) { toast("Cargá el hotel o barco antes de pedir la opinión"); return; }
+  const lider = tv ? tv.lider : v;
   const token = nuevoToken();
-  const data = { ventaId: v.id, cliente: (v.cliente || "").trim(), hotel: (v.hotel || "").trim(), tickets: (v.tickets || "").trim(), parques: (v.parques || "").trim(), destino: v.destino || "",
-    fechaDesde: v.fechaDesde || "", fechaHasta: v.fechaHasta || "", creadoTxt: new Date().toISOString() };
+  const data = { ventaId: lider.id, ventaIds: tv ? tv.ids : [v.id], hoteles, cliente: (lider.cliente || "").trim(),
+    hotel: hoteles[0].hotel, destino: hoteles[0].destino,
+    fechaDesde: tv ? tv.desde : (v.fechaDesde || ""), fechaHasta: tv ? tv.hasta : (v.fechaHasta || ""), creadoTxt: new Date().toISOString() };
   await store.crearInvitacion(token, data);
-  mostrarLink({ id: token, ...data }, v.telefono, v.email);
+  mostrarLink({ id: token, ...data }, tv ? tv.telefono : v.telefono, tv ? tv.email : v.email);
 }
 
 // ---------- Google Calendar ----------
@@ -1358,7 +1417,7 @@ function eventoA10(fecha, summary, description, extra = {}){
 }
 const pieDesc = (tel, mail, txt) => [tel ? `Teléfono: ${tel}` : "", mail ? `Mail: ${mail}` : "", tel ? `WhatsApp con el mensaje armado: ${waLink(tel, txt)}` : "", `App: ${location.origin + location.pathname}`].filter(Boolean).join("\n");
 // Devuelve, por tipo, el evento a crear/actualizar, null (borrar) o "igual" (no tocar: ya pasó)
-function eventosDeVenta(v){
+function eventosDeVenta(v, lista){
   const t = hoy(), out = {};
   const valida = v && v.estado !== "Cancelado";
   // pago: 10 días antes del vencimiento
@@ -1367,18 +1426,17 @@ function eventosDeVenta(v){
     out.a = f < t ? "igual" : eventoA10(f, `💰 Recordarle el pago a ${v.cliente}`,
       `Vence el pago total el ${fechaCorta(v.vencimiento)}.\nSaldo: ${fmt(saldoDe(v))}${v.numReserva ? `\nReserva: ${v.numReserva} (${v.destino})` : ""}\n\n` + pieDesc(v.telefono, v.email, MSJ.pago(v)));
   } else out.a = null;
-  // buen viaje: 2 días antes de la salida
-  if (valida && v.fechaDesde) {
-    const f = sumarDias(v.fechaDesde, -2);
-    out.b = f < t ? "igual" : eventoA10(f, `✈️ Desearle buen viaje a ${v.cliente}`,
-      `Sale el ${fechaCorta(v.fechaDesde)}${v.hotel ? ` · ${v.hotel}` : ""}${v.numReserva ? `\nReserva: ${v.numReserva} (${v.destino})` : ""}\n\n` + pieDesc(v.telefono, v.email, MSJ.viaje(v)));
-  } else out.b = null;
-  // agradecer: 2 días después del regreso
-  if (valida && regresoDe(v)) {
-    const f = sumarDias(regresoDe(v), 2);
-    out.c = f < t ? "igual" : eventoA10(f, `🙏 Agradecerle a ${v.cliente}${v.hotel ? " y pedirle la opinión" : ""}`,
-      `Volvió el ${fechaCorta(regresoDe(v))}${v.hotel ? ` · ${v.hotel}` : ""}.${v.hotel ? "\nEl link de opinión se genera desde la app (botón Pedir opinión)." : ""}\n\n` + pieDesc(v.telefono, v.email, MSJ.gracias(v)));
-  } else out.c = null;
+  // buen viaje y agradecer: uno por viaje, en la primera venta del viaje
+  const tv = valida ? viajeDe(v.id, lista) : null;
+  if (tv && tv.lider.id === v.id) {
+    const varias = tv.ventas.length > 1, det = varias ? "\n" + detalleViaje(tv) : "";
+    const fb = sumarDias(tv.desde, -2);
+    out.b = fb < t ? "igual" : eventoA10(fb, `✈️ Desearle buen viaje a ${v.cliente}`,
+      `Sale el ${fechaCorta(tv.desde)}${!varias && v.hotel ? ` · ${v.hotel}` : ""}${!varias && v.numReserva ? `\nReserva: ${v.numReserva} (${v.destino})` : ""}${det}\n\n` + pieDesc(tv.telefono, tv.email, MSJ.viaje(v)));
+    const fc = sumarDias(tv.hasta, 2);
+    out.c = fc < t ? "igual" : eventoA10(fc, `🙏 Agradecerle a ${v.cliente}${tv.hoteles.length ? " y pedirle la opinión" : ""}`,
+      `Volvió el ${fechaCorta(tv.hasta)}${!varias && v.hotel ? ` · ${v.hotel}` : ""}.${det}${tv.hoteles.length ? "\nEl link de opinión se genera desde la app (botón Pedir opinión)." : ""}\n\n` + pieDesc(tv.telefono, tv.email, MSJ.gracias(v)));
+  } else { out.b = null; out.c = null; }
   return out;
 }
 function eventoCumple(c){
@@ -1398,9 +1456,12 @@ async function calSacar(token, id){
 // Sincroniza las ventas indicadas (y los cumpleaños de sus clientes) contra el calendario
 async function calSincronizar(tokenP, idsVentas, listaVentas, nombresClientes){
   const token = await tokenP;
+  // Si cambia una venta, puede cambiar cómo se agrupan los viajes del cliente: se revisan todas sus ventas
+  const claves = new Set(nombresClientes.map(sinAcentos).filter(Boolean));
+  idsVentas = [...new Set([...idsVentas, ...listaVentas.filter(v => claves.has(sinAcentos(v.cliente))).map(v => v.id)])];
   for (const id of idsVentas) {
     const v = listaVentas.find(x => x.id === id) || null;
-    const evs = eventosDeVenta(v);
+    const evs = eventosDeVenta(v, listaVentas);
     for (const [tipo, ev] of Object.entries(evs)) {
       const eid = idEvento(tipo, id);
       if (ev === "igual") continue;
@@ -1509,26 +1570,31 @@ async function paginaOpinion(token){
   let api, inv;
   try { api = await initPublico(); inv = await api.getInv(token); }
   catch (e) { return msg("Link no disponible", "No pudimos abrir el formulario. Probá de nuevo en un rato."); }
-  if (!inv || !inv.hotel) return msg("Link no válido", "Este link no existe o fue borrado. Pedile uno nuevo a Hugo.");
+  const hs = inv ? hotelesInv(inv) : [];
+  if (!inv || !hs.length) return msg("Link no válido", "Este link no existe o fue borrado. Pedile uno nuevo a Hugo.");
   const nombre = (inv.cliente || "").split(" ")[0];
-  const barco = inv.destino === "Cruceros";
-  const titulo = inv.hotel;
   const viaje = rangoViaje(inv.fechaDesde, inv.fechaHasta);
+  const varios = hs.length > 1;
+  const titulo = varios ? hs.map(h => h.hotel).join(" y ") : hs[0].hotel;
   const stars = g => `<div class="op-stars" data-g="${g}" role="radiogroup" aria-label="Puntaje">${[1,2,3,4,5].map(n => `<button type="button" data-n="${n}" role="radio" aria-checked="false" aria-label="${n} estrella${n>1?"s":""}">★</button>`).join("")}</div>`;
   const opts = (name, list) => `<div class="op-opts">${list.map(([v,t]) => `<label><input type="radio" name="${name}" value="${v}">${t}</label>`).join("")}</div>`;
   const EXPO = [["mejor","Mejor de lo que esperaba"],["igual","Lo que esperaba"],["peor","Peor de lo que esperaba"]];
-  const bloque = (g, h3, quien) => `<div class="op-block">
+  const bloque = (h, i) => {
+    const barco = h.destino === "Cruceros", g = "h" + i;
+    const h3 = varios ? `${barco ? "🚢" : "🏨"} ${esc(h.hotel)}${h.fechaDesde ? ` <span>${esc(rangoViaje(h.fechaDesde, h.fechaHasta))}</span>` : ""}` : (barco ? "El barco" : "El hotel");
+    return `<div class="op-block">
       <h3>${h3}</h3>
-      <div class="op-q" data-req="${g}Puntaje"><p>¿Qué puntaje le das ${quien}?</p>${stars(g)}</div>
+      <div class="op-q" data-req="${g}"><p>¿Qué puntaje le das ${varios ? (barco ? "a este barco" : "a este hotel") : (barco ? "al barco" : "al hotel")}?</p>${stars(g)}</div>
       <div class="op-q" data-req="${g}Expect"><p>¿Fue lo que esperabas según mi recomendación?</p>${opts(g + "Expect", EXPO)}</div>
       <div class="op-q"><p>¿Qué fue lo mejor? <small>(opcional)</small></p><textarea name="${g}Mejor" maxlength="1000"></textarea></div>
     </div>`;
+  };
   card.innerHTML = `<form id="opForm" novalidate>
     <p class="op-hola">¡Hola${nombre ? " " + esc(nombre) : ""}! Contame cómo te fue.</p>
     <p class="op-sobre">Tu opinión sobre</p>
     <h1 class="op-hotel">${esc(titulo)}</h1>
     ${viaje ? `<p class="op-fechas">Viaje del ${esc(viaje)}</p>` : ""}
-    ${inv.hotel ? bloque("hotel", barco ? "El barco" : "El hotel", barco ? "al barco" : "al hotel") : ""}
+    ${hs.map(bloque).join("")}
     <div class="op-block">
       <button class="btn op-send" type="submit">Enviar mi opinión</button>
     </div>
@@ -1545,10 +1611,11 @@ async function paginaOpinion(token){
   f.addEventListener("submit", async e => {
     e.preventDefault();
     const fd = Object.fromEntries(new FormData(f));
-    const data = { hotelPuntaje: puntajes.hotel, hotelExpect: fd.hotelExpect, hotelMejor: (fd.hotelMejor || "").trim() };
+    const valores = { ...puntajes, ...fd };
     let falta = null;
-    f.querySelectorAll("[data-req]").forEach(q => { const ok = !!data[q.dataset.req]; q.classList.toggle("err", !ok); if (!ok && !falta) falta = q; });
+    f.querySelectorAll("[data-req]").forEach(q => { const ok = !!valores[q.dataset.req]; q.classList.toggle("err", !ok); if (!ok && !falta) falta = q; });
     if (falta) { falta.scrollIntoView({ behavior: "smooth", block: "center" }); return; }
+    const data = { respuestas: hs.map((h, i) => ({ i, puntaje: puntajes["h" + i], expect: fd["h" + i + "Expect"], mejor: (fd["h" + i + "Mejor"] || "").trim() })) };
     const btn = f.querySelector(".op-send"); btn.disabled = true; btn.textContent = "Enviando…";
     try {
       await api.enviar(token, data);
