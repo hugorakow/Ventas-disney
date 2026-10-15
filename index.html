@@ -301,6 +301,25 @@ section[hidden]{display:none!important}
 .hempty{color:var(--muted);font-size:.9rem}
 .hsearch{width:100%;border:1.5px solid var(--line);border-radius:999px;padding:11px 18px;background:var(--paper);margin-bottom:6px}
 
+/* ---------- Para hacer ---------- */
+.todo{background:var(--paper);border-radius:var(--r-lg);box-shadow:var(--shadow);padding:16px 18px;margin-bottom:18px}
+.todo h2{font-size:1.1rem;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+.todo h2 small{font-weight:500;color:var(--muted);font-size:.85rem}
+.todo-list{display:flex;flex-direction:column;gap:8px}
+.todo-it{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:var(--r-md);padding:10px 12px}
+.todo-ic{font-size:1.4rem;text-align:center}
+.todo-tx b{font-weight:700}
+.todo-tx small{display:block;color:var(--muted);font-size:.82rem;margin-top:1px}
+.todo-tx .cuando{font-weight:700;color:var(--accent)}
+.todo-tx .cuando.tarde{color:var(--bad)}
+.todo-bt{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.todo-bt .btn{padding:7px 13px;font-size:.85rem;text-decoration:none}
+@media (max-width:560px){ .todo-it{grid-template-columns:30px 1fr} .todo-bt{grid-column:1 / -1;justify-content:flex-start} }
+.cal{display:flex;align-items:center;gap:8px;font-size:.85rem;color:rgba(255,255,255,.8);margin-top:8px;flex-wrap:wrap}
+.cal[hidden]{display:none}
+.cal button{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:999px;padding:5px 12px;cursor:pointer;font-size:.82rem;font-weight:600}
+.cal button:hover{background:rgba(255,255,255,.24)}
+
 /* ---------- Página de opinión del cliente ---------- */
 .op-page{display:none}
 body.modo-op .hero, body.modo-op main, body.modo-op .gate, body.modo-op dialog{display:none!important}
@@ -358,6 +377,7 @@ body.modo-op{background:linear-gradient(170deg,#EDE7FB 0%,#F7F3FF 40%,#FDF1EA 10
         <h1>Mis ventas</h1>
         <p class="sub">Disney, Universal, Expedia, Bedsonline, Price Agencies y cruceros</p>
         <div class="user" id="userBox" hidden><span id="userMail"></span><button type="button" id="btnLogout">Salir</button></div>
+        <div class="cal" id="calBox" hidden><span id="calTxt"></span><button type="button" id="btnCal"></button></div>
       </div>
       <div class="actions">
         <button class="btn glass" id="btnCsv" type="button">Exportar CSV</button>
@@ -382,6 +402,7 @@ body.modo-op{background:linear-gradient(170deg,#EDE7FB 0%,#F7F3FF 40%,#FDF1EA 10
     <button class="tab" type="button" role="tab" data-tab="hoteles" aria-selected="false">Hoteles y cruceros</button>
   </nav>
   <section id="tabVentas">
+  <section class="todo" id="todo" hidden aria-label="Para hacer"></section>
   <div class="chips" id="chips" role="group" aria-label="Filtrar por proveedor"></div>
   <div class="filters">
     <input id="fText" type="search" placeholder="Buscar cliente, reserva, hotel, barco…" aria-label="Buscar">
@@ -431,6 +452,7 @@ body.modo-op{background:linear-gradient(170deg,#EDE7FB 0%,#F7F3FF 40%,#FDF1EA 10
         </div>
         <label>Email<input name="email" type="email" autocomplete="off"></label>
         <label>Teléfono / WhatsApp<input name="telefono" type="tel" autocomplete="off"></label>
+        <label>Fecha de nacimiento<input name="fechaNac" type="date" max="2100-12-31"></label>
       </div>
     </fieldset>
     <fieldset>
@@ -541,6 +563,11 @@ const firebaseConfig = {
   appId: "1:580018231246:web:057a915b2d088aca067d9f"
 };
 const COLECCION = "ventas_disney";
+// Google Calendar (cuenta de Pasaporte Mágico)
+const GCAL = {
+  clientId: "PEGAR_CLIENT_ID",
+  calendario: "hugor.pasaportemagico@gmail.com"
+};
 // =============================================================
 
 const PROVEEDORES = {
@@ -646,7 +673,7 @@ function initLocal(){
   const write = arr => { try { localStorage.setItem(KEY, JSON.stringify(arr)); } catch {} listeners.forEach(cb => cb(sorted())); };
   return {
     subscribe(cb){ listeners.push(cb); cb(sorted()); },
-    async add(data){ const arr = read(); arr.push({ ...data, id: crypto.randomUUID() }); write(arr); },
+    async add(data){ const arr = read(); const id = crypto.randomUUID(); arr.push({ ...data, id }); write(arr); return { id }; },
     async update(id, data){ write(read().map(v => v.id === id ? { ...v, ...data } : v)); },
     async remove(id){ write(read().filter(v => v.id !== id)); },
     subscribeOpiniones(cb){ opListeners.push(cb); cb(lsGet("inv_prueba"), lsGet("op_prueba")); },
@@ -728,6 +755,7 @@ function render(){
     <div class="mix-legend">${entradas.map(([p,m]) => `<span><span class="dot" style="background:${colorDe(p)}"></span>${esc(p)} <b>${fmt(m)}</b></span>`).join("")}</div>` : "";
 
   renderHoteles();
+  renderTodo();
   $("#sorter").hidden = !lista.length;
   $("#count").textContent = lista.length ? `${lista.length} venta${lista.length!==1?"s":""}` : "";
 
@@ -925,8 +953,12 @@ $("#qpForm").addEventListener("submit", async e => {
   if (!pagos) { toast("Hay un pago con nota pero sin monto"); return; }
   const cob = pagos.reduce((s,x) => s + x.monto, 0);
   const data = { pagos, montoCobrado: cob, estado: estadoSegun(pagosVenta.estado, num(pagosVenta.montoTotal), cob) };
+  const cal = calPreparar(), v0 = pagosVenta;
   $("#qpSave").disabled = true;
-  try { await store.update(pagosVenta.id, data); toast("Pagos guardados"); dlgP.close(); }
+  try {
+    await store.update(v0.id, data); toast("Pagos guardados"); dlgP.close();
+    if (cal) cal([v0.id], [...ventas.filter(v => v.id !== v0.id), { ...v0, ...data }], []);
+  }
   catch (err) { toast("No se pudo guardar: " + err.message); }
   finally { $("#qpSave").disabled = false; }
 });
@@ -974,22 +1006,32 @@ form.addEventListener("submit", async e => {
     adultos: num(f.adultos), ninos: num(f.ninos),
     parques: f.parques.trim(), tickets: f.tickets.trim(), hotel: f.hotel.trim(),
     montoTotal: num(f.montoTotal), comisionPct: num(f.comisionPct), comision: num(f.comision), comisionAgente: num(f.comisionAgente), miPct: num(f.miPct), fechaCobroCom: f.fechaCobroCom || "",
-    pagos, montoCobrado: pagos.reduce((s,x) => s + x.monto, 0), estado: f.estado, vencimiento: f.vencimiento, notas: f.notas.trim()
+    pagos, montoCobrado: pagos.reduce((s,x) => s + x.monto, 0), estado: f.estado, vencimiento: f.vencimiento, notas: f.notas.trim(),
+    fechaNac: f.fechaNac || ""
   };
+  const cal = calPreparar();
+  const anterior = editId ? ventas.find(v => v.id === editId) : null;
   $("#btnSave").disabled = true;
   try {
+    let id = editId;
     if (editId) { await store.update(editId, data); toast("Cambios guardados"); }
-    else { await store.add(data); toast("Venta guardada"); }
+    else { const ref = await store.add(data); id = ref && ref.id; toast("Venta guardada"); }
     dlg.close();
+    if (cal && id) {
+      const lista = [...ventas.filter(v => v.id !== id), { ...(anterior || {}), ...data, id }];
+      cal([id], lista, [data.cliente, anterior && anterior.cliente]);
+    }
   } catch (err) { toast("No se pudo guardar: " + err.message); }
   finally { $("#btnSave").disabled = false; }
 });
 
 $("#btnDelete").addEventListener("click", async () => {
   if (!editId || !confirm("¿Eliminar esta venta? No se puede deshacer.")) return;
+  const cal = calPreparar();
   try {
-    const id = editId;
+    const id = editId, borrada = ventas.find(v => v.id === id);
     await store.remove(id); dlg.close(); toast("Venta eliminada");
+    if (cal) cal([id], ventas.filter(v => v.id !== id), [borrada && borrada.cliente]);
     for (const inv of invitaciones.filter(i => i.ventaId === id)) {
       try { if (opDe(inv.id)) await store.borrarOpinion(inv.id); await store.borrarInvitacion(inv.id); } catch {}
     }
@@ -1111,12 +1153,12 @@ function mostrarLink(inv, tel, mail){
   $("#lkSub").textContent = [inv.cliente, inv.hotel].filter(Boolean).join(" · ");
   $("#lkUrl").value = url;
   const nombre = (inv.cliente || "").split(" ")[0];
-  const txt = `¡Hola${nombre ? " " + nombre : ""}! ¿Me contás cómo te fue${inv.hotel ? " en " + inv.hotel : ""}? Es un formulario cortito, te lleva un minuto: ${url}`;
+  const txt = `¡Hola${nombre ? " " + nombre : ""}! Gracias por viajar conmigo. ¿Me contás cómo te fue${inv.hotel ? " en " + inv.hotel : ""}? Es un formulario cortito, te lleva un minuto: ${url}`;
   const dig = String(tel || "").replace(/\D/g, "");
   $("#lkWa").href = `https://wa.me/${dig}?text=${encodeURIComponent(txt)}`;
   const para = String(mail || "").trim();
   const asunto = inv.hotel ? `¿Cómo te fue en ${inv.hotel}?` : "¿Cómo te fue en tu viaje?";
-  const cuerpo = `¡Hola${nombre ? " " + nombre : ""}!\n\n¿Me contás cómo te fue${inv.hotel ? " en " + inv.hotel : ""}? Es un formulario cortito, te lleva un minuto:\n\n${url}\n\n¡Gracias!\nHugo · Pasaporte Mágico`;
+  const cuerpo = `¡Hola${nombre ? " " + nombre : ""}!\n\nGracias por viajar conmigo. ¿Me contás cómo te fue${inv.hotel ? " en " + inv.hotel : ""}? Es un formulario cortito, te lleva un minuto:\n\n${url}\n\n¡Gracias!\nHugo · Pasaporte Mágico`;
   $("#lkMail").href = `mailto:${encodeURIComponent(para)}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
   $("#lkGmail").href = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(para)}&su=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
   dlgL.showModal();
@@ -1163,6 +1205,250 @@ $("#opStatus").addEventListener("click", async e => {
   }
 });
 
+// ---------- Fechas ----------
+const sumarDias = (f, n) => { const [y,m,d] = f.split("-").map(Number); const x = new Date(Date.UTC(y, m-1, d + n)); return x.toISOString().slice(0,10); };
+const difDias = (a, b) => Math.round((Date.parse(a) - Date.parse(b)) / 86400000); // a - b
+const nombrePila = c => String(c || "").trim().split(/\s+/)[0] || "";
+const waLink = (tel, txt) => `https://wa.me/${String(tel || "").replace(/\D/g, "")}?text=${encodeURIComponent(txt)}`;
+const saldoDe = v => Math.max(num(v.montoTotal) - num(v.montoCobrado), 0);
+const regresoDe = v => v.fechaHasta || v.fechaDesde || "";
+function proxCumple(fechaNac, desde){
+  const [, m, d] = fechaNac.split("-").map(Number);
+  const y = +desde.slice(0,4);
+  const arma = yy => { let dd = d; if (m === 2 && d === 29 && !((yy % 4 === 0 && yy % 100 !== 0) || yy % 400 === 0)) dd = 28; return `${yy}-${String(m).padStart(2,"0")}-${String(dd).padStart(2,"0")}`; };
+  const este = arma(y);
+  return este >= desde ? este : arma(y + 1);
+}
+const MSJ = {
+  viaje: v => `¡Hola ${nombrePila(v.cliente)}! Ya falta poquito para tu viaje 🎉 Te deseo que lo disfrutes muchísimo. Cualquier cosa que necesites durante el viaje, escribime. ¡Buen viaje!`,
+  pago: v => `¡Hola ${nombrePila(v.cliente)}! Te recuerdo que el ${fechaCorta(v.vencimiento)} vence el pago total de tu viaje. El saldo es de ${fmt(saldoDe(v))}. Cualquier duda, escribime.`,
+  gracias: v => `¡Hola ${nombrePila(v.cliente)}! ¡Bienvenido de vuelta! Gracias por viajar conmigo. Espero que lo hayan disfrutado mucho. Cuando quieras planear el próximo, acá estoy.`,
+  cumple: c => `¡Feliz cumpleaños, ${nombrePila(c.nombre)}! 🎂 Te deseo un día mágico. Un abrazo, Hugo`
+};
+// Clientes con fecha de nacimiento (dato de la venta más reciente que la tenga)
+function cumpleanieros(lista){
+  const m = new Map();
+  [...lista].filter(v => v.estado !== "Cancelado").sort((a,b) => String(a.fechaVenta||"").localeCompare(String(b.fechaVenta||""))).forEach(v => {
+    const k = sinAcentos(v.cliente); if (!k) return;
+    const c = m.get(k) || { k, nombre: "", fechaNac: "", telefono: "", email: "", venta: null };
+    c.nombre = v.cliente.trim();
+    if (v.fechaNac) { c.fechaNac = v.fechaNac; c.venta = v; }
+    if ((v.telefono||"").trim()) c.telefono = v.telefono.trim();
+    if ((v.email||"").trim()) c.email = v.email.trim();
+    m.set(k, c);
+  });
+  return [...m.values()].filter(c => c.fechaNac);
+}
+
+// ---------- Panel "Para hacer" ----------
+function tareas(){
+  const t = hoy(), out = [];
+  const quedan = d => d === 0 ? "Hoy" : d === 1 ? "Mañana" : d > 1 ? `En ${d} días` : d === -1 ? "Ayer" : `Hace ${-d} días`;
+  ventas.filter(v => v.estado !== "Cancelado").forEach(v => {
+    const seg = v.seguimiento || {};
+    if (v.fechaDesde && !seg.viaje) {
+      const d = difDias(sumarDias(v.fechaDesde, -2), t);
+      if (d <= 0 && difDias(v.fechaDesde, t) >= 0) out.push({ v, tipo: "viaje", orden: v.fechaDesde, ic: "✈️", txt: `Desearle buen viaje a <b>${esc(v.cliente)}</b>`, sub: `Sale ${difDias(v.fechaDesde, t) === 0 ? "hoy" : "el " + fechaCorta(v.fechaDesde)}${v.hotel ? " · " + esc(v.hotel) : ""}`, cuando: quedan(Math.max(d, 0)), wa: waLink(v.telefono, MSJ.viaje(v)) });
+    }
+    if (v.vencimiento && saldoDe(v) > 0 && v.estado !== "Pagado" && seg.pago !== v.vencimiento) {
+      const dv = difDias(v.vencimiento, t);
+      if (dv <= 10 && dv >= -30) out.push({ v, tipo: "pago", orden: v.vencimiento, ic: "💰", txt: `Recordarle el pago a <b>${esc(v.cliente)}</b>`, sub: `${dv < 0 ? "Venció" : "Vence"} el ${fechaCorta(v.vencimiento)} · debe ${fmt(saldoDe(v))}`, cuando: dv < 0 ? `Venció hace ${-dv} día${dv === -1 ? "" : "s"}` : dv === 0 ? "Vence hoy" : `Vence en ${dv} día${dv === 1 ? "" : "s"}`, tarde: dv < 0, wa: waLink(v.telefono, MSJ.pago(v)) });
+    }
+    const r = regresoDe(v);
+    if (r && !seg.gracias && !invDeVenta(v.id)) {
+      const d = difDias(sumarDias(r, 2), t);
+      if (d <= 0 && d >= -30) out.push({ v, tipo: "gracias", orden: sumarDias(r, 2), ic: "🙏", txt: `Agradecerle a <b>${esc(v.cliente)}</b>${v.hotel ? " y pedirle la opinión" : ""}`, sub: `Volvió el ${fechaCorta(r)}${v.hotel ? " · " + esc(v.hotel) : ""}`, cuando: quedan(d), opinion: !!v.hotel, wa: waLink(v.telefono, MSJ.gracias(v)) });
+    }
+  });
+  cumpleanieros(ventas).forEach(c => {
+    const f = proxCumple(c.fechaNac, sumarDias(t, -0));
+    const d = difDias(f, t), clave = "cumple" + f.slice(0,4);
+    if (d <= 3 && !(c.venta.seguimiento || {})[clave]) out.push({ v: c.venta, tipo: clave, orden: f, ic: "🎂", txt: `Saludar a <b>${esc(c.nombre)}</b> por su cumpleaños`, sub: fechaCorta(f), cuando: quedan(d), wa: waLink(c.telefono, MSJ.cumple(c)) });
+  });
+  return out.sort((a,b) => a.orden.localeCompare(b.orden));
+}
+function renderTodo(){
+  const box = $("#todo"), lista = tareas();
+  box.hidden = !lista.length;
+  if (!lista.length) { box.innerHTML = ""; return; }
+  box.innerHTML = `<h2>Para hacer <small>${lista.length} pendiente${lista.length !== 1 ? "s" : ""}</small></h2>
+    <div class="todo-list">${lista.map((x, i) => `<div class="todo-it">
+      <span class="todo-ic" aria-hidden="true">${x.ic}</span>
+      <div class="todo-tx"><span class="cuando ${x.tarde ? "tarde" : ""}">${x.cuando}</span> · ${x.txt}<small>${x.sub}</small></div>
+      <div class="todo-bt">
+        ${x.opinion ? `<button type="button" class="btn sm" data-op="${i}">Pedir opinión</button>` : `<a class="btn wa sm" href="${x.wa}" target="_blank" rel="noopener">WhatsApp</a>`}
+        <button type="button" class="btn ghost sm" data-hecho="${i}">✓ Hecho</button>
+      </div>
+    </div>`).join("")}</div>`;
+  box._lista = lista;
+}
+$("#todo").addEventListener("click", async e => {
+  const box = $("#todo"), lista = box._lista || [];
+  const h = e.target.closest("[data-hecho]"), o = e.target.closest("[data-op]");
+  if (h) {
+    const x = lista[+h.dataset.hecho]; if (!x) return;
+    const seg = { ...(x.v.seguimiento || {}), [x.tipo]: x.tipo === "pago" ? x.v.vencimiento : hoy() };
+    h.disabled = true;
+    try { await store.update(x.v.id, { seguimiento: seg }); toast("Listo"); }
+    catch (err) { h.disabled = false; toast("No se pudo guardar: " + err.message); }
+  } else if (o) {
+    const x = lista[+o.dataset.op]; if (!x) return;
+    o.disabled = true;
+    try { await pedirOpinion(x.v); } catch (err) { o.disabled = false; toast(err.code === "permission-denied" ? "Falta actualizar las reglas de Firestore" : "No se pudo crear el link: " + err.message); }
+  }
+});
+async function pedirOpinion(v){
+  const token = nuevoToken();
+  const data = { ventaId: v.id, cliente: (v.cliente || "").trim(), hotel: (v.hotel || "").trim(), tickets: (v.tickets || "").trim(), parques: (v.parques || "").trim(), destino: v.destino || "",
+    fechaDesde: v.fechaDesde || "", fechaHasta: v.fechaHasta || "", creadoTxt: new Date().toISOString() };
+  await store.crearInvitacion(token, data);
+  mostrarLink({ id: token, ...data }, v.telefono, v.email);
+}
+
+// ---------- Google Calendar ----------
+const TZ = "America/Argentina/Buenos_Aires";
+const calConfig = !GCAL.clientId.startsWith("PEGAR");
+let calToken = null, calCliente = null, calEsperando = [];
+try { const t = JSON.parse(localStorage.getItem("gcal_token")); if (t && t.exp > Date.now() + 60000) calToken = t; } catch {}
+const calActivo = () => { try { return localStorage.getItem("gcal_on") === "1"; } catch { return false; } };
+function calCargarScript(){
+  if (window.google?.accounts?.oauth2 || document.getElementById("gsiScript")) return;
+  const sc = document.createElement("script"); sc.id = "gsiScript"; sc.src = "https://accounts.google.com/gsi/client"; sc.async = true;
+  sc.onload = () => pintarCal(); document.head.appendChild(sc);
+}
+function calInitCliente(){
+  if (calCliente || !window.google?.accounts?.oauth2) return calCliente;
+  calCliente = google.accounts.oauth2.initTokenClient({
+    client_id: GCAL.clientId,
+    scope: "https://www.googleapis.com/auth/calendar.events",
+    hint: GCAL.calendario,
+    callback: r => {
+      const esp = calEsperando; calEsperando = [];
+      if (r && r.access_token) {
+        calToken = { t: r.access_token, exp: Date.now() + (r.expires_in || 3600) * 1000 };
+        try { localStorage.setItem("gcal_token", JSON.stringify(calToken)); localStorage.setItem("gcal_on", "1"); } catch {}
+        pintarCal(); esp.forEach(x => x.ok(calToken.t));
+      } else esp.forEach(x => x.no(new Error((r && (r.error_description || r.error)) || "sin permiso")));
+    },
+    error_callback: err => { const esp = calEsperando; calEsperando = []; esp.forEach(x => x.no(new Error(err && err.type || "ventana cerrada"))); }
+  });
+  return calCliente;
+}
+// Debe llamarse dentro de un clic (si hace falta, abre la ventana de Google)
+function calPedirToken(consent){
+  if (!consent && calToken && calToken.exp > Date.now() + 60000) return Promise.resolve(calToken.t);
+  const cli = calInitCliente();
+  if (!cli) return Promise.reject(new Error("Google todavía no cargó, probá de nuevo en unos segundos"));
+  return new Promise((ok, no) => { calEsperando.push({ ok, no }); cli.requestAccessToken({ prompt: consent ? "consent" : "" }); });
+}
+async function calApi(token, metodo, ruta, body){
+  const r = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(GCAL.calendario)}/events${ruta}`, {
+    method: metodo, headers: { Authorization: "Bearer " + token, ...(body ? { "Content-Type": "application/json" } : {}) },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  if (r.status === 401) { calToken = null; try { localStorage.removeItem("gcal_token"); } catch {} }
+  return r;
+}
+const hexId = txt => [...new TextEncoder().encode(txt)].map(b => b.toString(16).padStart(2, "0")).join("");
+const idEvento = (tipo, clave) => "pm" + tipo + hexId(clave); // tipo: a=pago, b=viaje, c=gracias, d=cumpleaños
+function eventoA10(fecha, summary, description, extra = {}){
+  return { summary, description, status: "confirmed",
+    start: { dateTime: fecha + "T10:00:00", timeZone: TZ }, end: { dateTime: fecha + "T10:15:00", timeZone: TZ },
+    reminders: { useDefault: false, overrides: [{ method: "popup", minutes: 0 }] }, ...extra };
+}
+const pieDesc = (tel, mail, txt) => [tel ? `Teléfono: ${tel}` : "", mail ? `Mail: ${mail}` : "", tel ? `WhatsApp con el mensaje armado: ${waLink(tel, txt)}` : "", `App: ${location.origin + location.pathname}`].filter(Boolean).join("\n");
+// Devuelve, por tipo, el evento a crear/actualizar, null (borrar) o "igual" (no tocar: ya pasó)
+function eventosDeVenta(v){
+  const t = hoy(), out = {};
+  const valida = v && v.estado !== "Cancelado";
+  // pago: 10 días antes del vencimiento
+  if (valida && v.vencimiento && saldoDe(v) > 0 && v.estado !== "Pagado") {
+    const f = sumarDias(v.vencimiento, -10);
+    out.a = f < t ? "igual" : eventoA10(f, `💰 Recordarle el pago a ${v.cliente}`,
+      `Vence el pago total el ${fechaCorta(v.vencimiento)}.\nSaldo: ${fmt(saldoDe(v))}${v.numReserva ? `\nReserva: ${v.numReserva} (${v.destino})` : ""}\n\n` + pieDesc(v.telefono, v.email, MSJ.pago(v)));
+  } else out.a = null;
+  // buen viaje: 2 días antes de la salida
+  if (valida && v.fechaDesde) {
+    const f = sumarDias(v.fechaDesde, -2);
+    out.b = f < t ? "igual" : eventoA10(f, `✈️ Desearle buen viaje a ${v.cliente}`,
+      `Sale el ${fechaCorta(v.fechaDesde)}${v.hotel ? ` · ${v.hotel}` : ""}${v.numReserva ? `\nReserva: ${v.numReserva} (${v.destino})` : ""}\n\n` + pieDesc(v.telefono, v.email, MSJ.viaje(v)));
+  } else out.b = null;
+  // agradecer: 2 días después del regreso
+  if (valida && regresoDe(v)) {
+    const f = sumarDias(regresoDe(v), 2);
+    out.c = f < t ? "igual" : eventoA10(f, `🙏 Agradecerle a ${v.cliente}${v.hotel ? " y pedirle la opinión" : ""}`,
+      `Volvió el ${fechaCorta(regresoDe(v))}${v.hotel ? ` · ${v.hotel}` : ""}.${v.hotel ? "\nEl link de opinión se genera desde la app (botón Pedir opinión)." : ""}\n\n` + pieDesc(v.telefono, v.email, MSJ.gracias(v)));
+  } else out.c = null;
+  return out;
+}
+function eventoCumple(c){
+  const f = proxCumple(c.fechaNac, hoy().slice(0,4) + "-01-01");
+  return eventoA10(f, `🎂 Cumpleaños de ${c.nombre}`, `Cumple el ${+c.fechaNac.slice(8)} de ${MESES[+c.fechaNac.slice(5,7)-1]}.\n\n` + pieDesc(c.telefono, c.email, MSJ.cumple(c)),
+    { recurrence: ["RRULE:FREQ=YEARLY"] });
+}
+async function calPoner(token, id, ev){
+  let r = await calApi(token, "PUT", "/" + id, ev);
+  if (r.status === 404) r = await calApi(token, "POST", "", { ...ev, id });
+  if (!r.ok) throw new Error("Calendar respondió " + r.status);
+}
+async function calSacar(token, id){
+  const r = await calApi(token, "DELETE", "/" + id);
+  if (!r.ok && r.status !== 404 && r.status !== 410) throw new Error("Calendar respondió " + r.status);
+}
+// Sincroniza las ventas indicadas (y los cumpleaños de sus clientes) contra el calendario
+async function calSincronizar(tokenP, idsVentas, listaVentas, nombresClientes){
+  const token = await tokenP;
+  for (const id of idsVentas) {
+    const v = listaVentas.find(x => x.id === id) || null;
+    const evs = eventosDeVenta(v);
+    for (const [tipo, ev] of Object.entries(evs)) {
+      const eid = idEvento(tipo, id);
+      if (ev === "igual") continue;
+      if (ev) await calPoner(token, eid, ev); else await calSacar(token, eid);
+    }
+  }
+  const cumples = cumpleanieros(listaVentas);
+  for (const k of new Set(nombresClientes.map(sinAcentos).filter(Boolean))) {
+    const c = cumples.find(x => x.k === k);
+    if (c) await calPoner(token, idEvento("d", k), eventoCumple(c)); else await calSacar(token, idEvento("d", k));
+  }
+}
+// Se llama sincrónicamente desde el clic de Guardar/Eliminar; devuelve una función para correr después de guardar
+function calPreparar(){
+  if (!calConfig || !calActivo()) return null;
+  let tokenP;
+  try { tokenP = calPedirToken(false); } catch (e) { tokenP = Promise.reject(e); }
+  tokenP.catch(() => {});
+  return async (idsVentas, listaVentas, nombres) => {
+    try { await calSincronizar(tokenP, idsVentas, listaVentas, nombres); }
+    catch (err) { toast("Se guardó, pero no se pudo actualizar Calendar. Tocá “Sincronizar” arriba."); console.warn(err); }
+  };
+}
+let calSincronizando = false;
+function pintarCal(){
+  const box = $("#calBox");
+  box.hidden = !calConfig || document.body.classList.contains("modo-op");
+  if (box.hidden) return;
+  const on = calActivo();
+  $("#calTxt").textContent = calSincronizando ? "📅 Sincronizando con Calendar…" : on ? "📅 Google Calendar conectado" : "📅 Google Calendar sin conectar";
+  $("#btnCal").textContent = on ? "Sincronizar" : "Conectar";
+  $("#btnCal").disabled = calSincronizando;
+}
+$("#btnCal").addEventListener("click", async () => {
+  const primera = !calActivo();
+  let tokenP;
+  try { tokenP = calPedirToken(primera); } catch (e) { tokenP = Promise.reject(e); }
+  calSincronizando = true; pintarCal();
+  try {
+    await tokenP;
+    const lista = [...ventas];
+    await calSincronizar(tokenP, lista.map(v => v.id), lista, lista.map(v => v.cliente));
+    toast(primera ? "Calendar conectado y al día" : "Calendar al día");
+  } catch (err) {
+    toast(/40[34]/.test(err.message) ? "Esa cuenta no tiene acceso al calendario de " + GCAL.calendario : "No se pudo sincronizar: " + err.message);
+  } finally { calSincronizando = false; pintarCal(); }
+});
+
 // ---------- Autocompletar cliente ----------
 const sug = $("#sugCli");
 let sugItems = [], sugSel = -1;
@@ -1170,7 +1456,8 @@ function clientesConocidos(){
   const m = new Map();
   [...ventas].sort((a,b) => String(a.fechaVenta||"").localeCompare(String(b.fechaVenta||""))).forEach(v => {
     const k = sinAcentos(v.cliente); if (!k) return;
-    const c = m.get(k) || { nombre: v.cliente.trim(), email: "", telefono: "", n: 0 };
+    const c = m.get(k) || { nombre: v.cliente.trim(), email: "", telefono: "", fechaNac: "", n: 0 };
+    if (v.fechaNac) c.fechaNac = v.fechaNac;
     c.nombre = v.cliente.trim(); c.n++;
     if ((v.email || "").trim()) c.email = v.email.trim();
     if ((v.telefono || "").trim()) c.telefono = v.telefono.trim();
@@ -1183,6 +1470,7 @@ function completarCliente(c){
   form.cliente.value = c.nombre;
   if (!form.email.value.trim() && c.email) form.email.value = c.email;
   if (!form.telefono.value.trim() && c.telefono) form.telefono.value = c.telefono;
+  if (!form.fechaNac.value && c.fechaNac) form.fechaNac.value = c.fechaNac;
   cerrarSug();
 }
 function mostrarSug(){
@@ -1209,7 +1497,7 @@ sug.addEventListener("click", e => { const b = e.target.closest("button"); if (b
 form.cliente.addEventListener("blur", () => setTimeout(cerrarSug, 150));
 form.cliente.addEventListener("change", () => {
   const c = clientesConocidos().find(x => sinAcentos(x.nombre) === sinAcentos(form.cliente.value));
-  if (c) { if (!form.email.value.trim() && c.email) form.email.value = c.email; if (!form.telefono.value.trim() && c.telefono) form.telefono.value = c.telefono; }
+  if (c) { if (!form.email.value.trim() && c.email) form.email.value = c.email; if (!form.telefono.value.trim() && c.telefono) form.telefono.value = c.telefono; if (!form.fechaNac.value && c.fechaNac) form.fechaNac.value = c.fechaNac; }
 });
 
 // ---------- Formulario público de opinión ----------
@@ -1264,7 +1552,7 @@ async function paginaOpinion(token){
     const btn = f.querySelector(".op-send"); btn.disabled = true; btn.textContent = "Enviando…";
     try {
       await api.enviar(token, data);
-      msg("¡Muchas gracias!", "Tu opinión me ayuda a recomendar cada vez mejor. ¡Que sigan los viajes mágicos!");
+      msg("¡Muchas gracias!", "Gracias por viajar conmigo. Cuando quieras planear el próximo, acá estoy.");
     } catch (err) {
       if (err.code === "permission-denied") msg("Ya recibí tu opinión", "Este formulario ya fue enviado. ¡Gracias!");
       else { btn.disabled = false; btn.textContent = "Enviar mi opinión"; alert("No se pudo enviar. Revisá tu conexión y probá de nuevo."); }
@@ -1274,7 +1562,7 @@ async function paginaOpinion(token){
 
 // ---------- CSV ----------
 $("#btnCsv").addEventListener("click", () => {
-  const cols = [["fechaVenta","Fecha venta"],["destino","Proveedor"],["numReserva","N° de reserva"],["cliente","Cliente"],["email","Email"],["telefono","Teléfono"],["fechaDesde","Salida"],["fechaHasta","Regreso"],["adultos","Adultos"],["ninos","Niños"],["parques","Parques / itinerario"],["tickets","Tickets / servicios"],["hotel","Hotel / barco"],["montoTotal","Monto total"],["comisionPct","Comisión total %"],["comision","Comisión total"],["comisionAgente","Mi comisión"],["miPct","Mi %"],["fechaCobroCom","Cobro mi comisión"],["parteAgencia","Parte agencia"],["montoCobrado","Cobrado"],["cantPagos","Cant. pagos"],["detallePagos","Detalle pagos"],["saldo","Saldo"],["estado","Estado"],["vencimiento","Vence saldo"],["notas","Notas"]];
+  const cols = [["fechaVenta","Fecha venta"],["destino","Proveedor"],["numReserva","N° de reserva"],["cliente","Cliente"],["email","Email"],["telefono","Teléfono"],["fechaNac","Fecha de nacimiento"],["fechaDesde","Salida"],["fechaHasta","Regreso"],["adultos","Adultos"],["ninos","Niños"],["parques","Parques / itinerario"],["tickets","Tickets / servicios"],["hotel","Hotel / barco"],["montoTotal","Monto total"],["comisionPct","Comisión total %"],["comision","Comisión total"],["comisionAgente","Mi comisión"],["miPct","Mi %"],["fechaCobroCom","Cobro mi comisión"],["parteAgencia","Parte agencia"],["montoCobrado","Cobrado"],["cantPagos","Cant. pagos"],["detallePagos","Detalle pagos"],["saldo","Saldo"],["estado","Estado"],["vencimiento","Vence saldo"],["notas","Notas"]];
   const q = v => `"${String(v ?? "").replace(/"/g,'""')}"`;
   const detalle = v => (Array.isArray(v.pagos) ? v.pagos : []).map(x => `${x.fecha ? fechaCorta(x.fecha) : "sin fecha"}: US$ ${x.monto}${x.nota ? " (" + x.nota + ")" : ""}`).join(" | ");
   const filas = filtradas().map(v => ({ ...v, cantPagos: Array.isArray(v.pagos) ? v.pagos.length : 0, detallePagos: detalle(v), parteAgencia: num(v.comision) - num(v.comisionAgente), saldo: Math.max(num(v.montoTotal) - num(v.montoCobrado), 0) }));
@@ -1289,9 +1577,11 @@ $("#btnCsv").addEventListener("click", () => {
 // ---------- Arranque ----------
 renderChips();
 pintarTab();
+pintarCal();
 (async () => {
   const tokenOp = new URLSearchParams(location.search).get("opinion");
   if (tokenOp) return paginaOpinion(tokenOp);
+  if (calConfig) calCargarScript();
   try {
     if (configurado) store = await initFirebase();
     else { store = initLocal(); banner("Modo prueba: los datos se guardan solo en este navegador."); }
@@ -1301,7 +1591,7 @@ pintarTab();
   }
   const escucharOpiniones = () => store.subscribeOpiniones((inv, op) => {
     opError = ""; invitaciones = inv.map(i => ({ ...i, creadoTxt: i.creadoTxt || "" })); opiniones = op;
-    renderHoteles(); if (dlg.open) pintarOpinionVenta();
+    renderHoteles(); renderTodo(); if (dlg.open) pintarOpinionVenta();
   }, e => {
     opError = e.code === "permission-denied" ? "Para ver las opiniones falta actualizar las reglas de Firestore." : "No se pudieron leer las opiniones: " + esc(e.message);
     renderHoteles();
